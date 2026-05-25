@@ -1,0 +1,18 @@
+{
+  "@@locale": "ar",
+  "appTitle": "كليو",
+  "projectsTitle": "المشاريع",
+  "addProject": "إضافة مشروع",
+  "noProjects": "لا توجد مشاريع بعد. أضف مجلداً للبدء.",
+  "removeProject": "إزالة المشروع",
+  "removeProjectConfirm": "إزالة \"{name}\" من كليو؟ سيتم إغلاق جلسات هذا المشروع.",
+  "sessionsTitle": "الجلسات",
+  "newSession": "جلسة جديدة",
+  "noSessions": "لا توجد جلسات بعد. ابدأ واحدة لتشغيل كلود هنا.",
+  "noSessionSelected": "اختر جلسة أو أنشئ واحدة للبدء.",
+  "resumeSession": "استئناف",
+  "removeSession": "إغلاق الجلسة",
+  "sessionStarting": "جارٍ تشغيل كلود…",
+  "cancel": "إلغاء",
+  "remove": "إزالة"
+}

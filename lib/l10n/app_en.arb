@@ -1,0 +1,21 @@
+{
+  "@@locale": "en",
+  "appTitle": "clio",
+  "projectsTitle": "Projects",
+  "addProject": "Add project",
+  "noProjects": "No projects yet. Add a folder to get started.",
+  "removeProject": "Remove project",
+  "removeProjectConfirm": "Remove \"{name}\" from clio? Sessions for this project will be closed.",
+  "@removeProjectConfirm": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "sessionsTitle": "Sessions",
+  "newSession": "New session",
+  "noSessions": "No sessions yet. Start one to launch Claude here.",
+  "noSessionSelected": "Select or create a session to begin.",
+  "resumeSession": "Resume",
+  "removeSession": "Close session",
+  "sessionStarting": "Starting Claude…",
+  "cancel": "Cancel",
+  "remove": "Remove"
+}
