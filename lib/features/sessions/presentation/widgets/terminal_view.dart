@@ -18,18 +18,23 @@ class SessionTerminalView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final terminal =
-        ref.watch(terminalControllerProvider(projectId, sessionId));
+    final terminal = ref.watch(
+      terminalControllerProvider(projectId, sessionId),
+    );
     return ColoredBox(
       color: AppColors.background,
-      child: TerminalView(
-        terminal,
-        autofocus: true,
-        padding: const EdgeInsets.all(8),
-        theme: TerminalThemes.defaultTheme,
-        textStyle: const TerminalStyle(
-          fontFamily: AppTypography.fontFamily,
-          fontSize: 13,
+      child: Directionality(
+        textDirection: .ltr,
+        child: TerminalView(
+          terminal,
+          autofocus: true,
+          padding: const EdgeInsets.all(8),
+          theme: TerminalThemes.defaultTheme,
+          textStyle: const TerminalStyle(
+            fontFamily: AppTypography.fontFamily,
+            fontSize: 13,
+            height: 1.3,
+          ),
         ),
       ),
     );

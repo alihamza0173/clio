@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'dart:typed_data';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -20,6 +21,15 @@ part 'terminal_controller.g.dart';
 /// the pty starts at the terminal's real column/row count — spawning at a
 /// default size first causes the TUI to reflow and duplicate its output.
 ///
+/// `reflowEnabled: false` and a synchronous (non-debounced) pty resize are both
+/// load-bearing: `claude` is an Ink TUI that redraws on SIGWINCH by clearing the
+/// previous frame's line count and repainting. xterm's reflow rewraps the
+/// on-screen frame without moving the cursor with it, so claude's clear misses
+/// the old frame (duplicate banner); debouncing the pty resize lets xterm's
+/// buffer width drift from the pty width, so claude paints against a stale width
+/// (stranded text / double cursor). Keeping reflow off and the resize in lockstep
+/// with the pty mirrors how `claude` behaves in a real terminal.
+///
 /// Kept alive so switching between session tabs does not kill the running
 /// `claude` process; disposed (and the pty killed) only when the session is
 /// removed via [ref.invalidate] or the app shuts down.
@@ -30,19 +40,30 @@ class TerminalController extends _$TerminalController {
 
   @override
   Terminal build(String projectId, String sessionId) {
-    final terminal = Terminal(maxLines: 10000);
+    final terminal = Terminal(
+      maxLines: 10000,
+      reflowEnabled: false,
+      platform: _terminalPlatform(),
+    );
     terminal.onOutput = (data) =>
         _pty?.write(Uint8List.fromList(utf8.encode(data)));
     terminal.onResize = (width, height, pixelWidth, pixelHeight) {
       final pty = _pty;
-      if (pty != null) {
-        pty.resize(height, width);
-      } else {
+      if (pty == null) {
         _launch(terminal, rows: height, columns: width);
+      } else {
+        pty.resize(height, width);
       }
     };
     ref.onDispose(() => _pty?.kill());
     return terminal;
+  }
+
+  TerminalTargetPlatform _terminalPlatform() {
+    if (Platform.isMacOS) return TerminalTargetPlatform.macos;
+    if (Platform.isLinux) return TerminalTargetPlatform.linux;
+    if (Platform.isWindows) return TerminalTargetPlatform.windows;
+    return TerminalTargetPlatform.unknown;
   }
 
   Future<void> _launch(

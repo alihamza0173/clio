@@ -10,6 +10,19 @@ part of 'terminal_controller.dart';
 // ignore_for_file: type=lint, type=warning
 /// Owns the [Pty] + xterm [Terminal] lifecycle for a single session.
 ///
+/// The `claude` process is spawned lazily on the first layout-driven resize so
+/// the pty starts at the terminal's real column/row count — spawning at a
+/// default size first causes the TUI to reflow and duplicate its output.
+///
+/// `reflowEnabled: false` and a synchronous (non-debounced) pty resize are both
+/// load-bearing: `claude` is an Ink TUI that redraws on SIGWINCH by clearing the
+/// previous frame's line count and repainting. xterm's reflow rewraps the
+/// on-screen frame without moving the cursor with it, so claude's clear misses
+/// the old frame (duplicate banner); debouncing the pty resize lets xterm's
+/// buffer width drift from the pty width, so claude paints against a stale width
+/// (stranded text / double cursor). Keeping reflow off and the resize in lockstep
+/// with the pty mirrors how `claude` behaves in a real terminal.
+///
 /// Kept alive so switching between session tabs does not kill the running
 /// `claude` process; disposed (and the pty killed) only when the session is
 /// removed via [ref.invalidate] or the app shuts down.
@@ -19,12 +32,38 @@ final terminalControllerProvider = TerminalControllerFamily._();
 
 /// Owns the [Pty] + xterm [Terminal] lifecycle for a single session.
 ///
+/// The `claude` process is spawned lazily on the first layout-driven resize so
+/// the pty starts at the terminal's real column/row count — spawning at a
+/// default size first causes the TUI to reflow and duplicate its output.
+///
+/// `reflowEnabled: false` and a synchronous (non-debounced) pty resize are both
+/// load-bearing: `claude` is an Ink TUI that redraws on SIGWINCH by clearing the
+/// previous frame's line count and repainting. xterm's reflow rewraps the
+/// on-screen frame without moving the cursor with it, so claude's clear misses
+/// the old frame (duplicate banner); debouncing the pty resize lets xterm's
+/// buffer width drift from the pty width, so claude paints against a stale width
+/// (stranded text / double cursor). Keeping reflow off and the resize in lockstep
+/// with the pty mirrors how `claude` behaves in a real terminal.
+///
 /// Kept alive so switching between session tabs does not kill the running
 /// `claude` process; disposed (and the pty killed) only when the session is
 /// removed via [ref.invalidate] or the app shuts down.
 final class TerminalControllerProvider
     extends $NotifierProvider<TerminalController, Terminal> {
   /// Owns the [Pty] + xterm [Terminal] lifecycle for a single session.
+  ///
+  /// The `claude` process is spawned lazily on the first layout-driven resize so
+  /// the pty starts at the terminal's real column/row count — spawning at a
+  /// default size first causes the TUI to reflow and duplicate its output.
+  ///
+  /// `reflowEnabled: false` and a synchronous (non-debounced) pty resize are both
+  /// load-bearing: `claude` is an Ink TUI that redraws on SIGWINCH by clearing the
+  /// previous frame's line count and repainting. xterm's reflow rewraps the
+  /// on-screen frame without moving the cursor with it, so claude's clear misses
+  /// the old frame (duplicate banner); debouncing the pty resize lets xterm's
+  /// buffer width drift from the pty width, so claude paints against a stale width
+  /// (stranded text / double cursor). Keeping reflow off and the resize in lockstep
+  /// with the pty mirrors how `claude` behaves in a real terminal.
   ///
   /// Kept alive so switching between session tabs does not kill the running
   /// `claude` process; disposed (and the pty killed) only when the session is
@@ -74,9 +113,22 @@ final class TerminalControllerProvider
 }
 
 String _$terminalControllerHash() =>
-    r'08ccf03ac03467b05502d5bd26cca3f95e79a74b';
+    r'6f347a03feb79389a4527b4657647d491f385f47';
 
 /// Owns the [Pty] + xterm [Terminal] lifecycle for a single session.
+///
+/// The `claude` process is spawned lazily on the first layout-driven resize so
+/// the pty starts at the terminal's real column/row count — spawning at a
+/// default size first causes the TUI to reflow and duplicate its output.
+///
+/// `reflowEnabled: false` and a synchronous (non-debounced) pty resize are both
+/// load-bearing: `claude` is an Ink TUI that redraws on SIGWINCH by clearing the
+/// previous frame's line count and repainting. xterm's reflow rewraps the
+/// on-screen frame without moving the cursor with it, so claude's clear misses
+/// the old frame (duplicate banner); debouncing the pty resize lets xterm's
+/// buffer width drift from the pty width, so claude paints against a stale width
+/// (stranded text / double cursor). Keeping reflow off and the resize in lockstep
+/// with the pty mirrors how `claude` behaves in a real terminal.
 ///
 /// Kept alive so switching between session tabs does not kill the running
 /// `claude` process; disposed (and the pty killed) only when the session is
@@ -102,6 +154,19 @@ final class TerminalControllerFamily extends $Family
 
   /// Owns the [Pty] + xterm [Terminal] lifecycle for a single session.
   ///
+  /// The `claude` process is spawned lazily on the first layout-driven resize so
+  /// the pty starts at the terminal's real column/row count — spawning at a
+  /// default size first causes the TUI to reflow and duplicate its output.
+  ///
+  /// `reflowEnabled: false` and a synchronous (non-debounced) pty resize are both
+  /// load-bearing: `claude` is an Ink TUI that redraws on SIGWINCH by clearing the
+  /// previous frame's line count and repainting. xterm's reflow rewraps the
+  /// on-screen frame without moving the cursor with it, so claude's clear misses
+  /// the old frame (duplicate banner); debouncing the pty resize lets xterm's
+  /// buffer width drift from the pty width, so claude paints against a stale width
+  /// (stranded text / double cursor). Keeping reflow off and the resize in lockstep
+  /// with the pty mirrors how `claude` behaves in a real terminal.
+  ///
   /// Kept alive so switching between session tabs does not kill the running
   /// `claude` process; disposed (and the pty killed) only when the session is
   /// removed via [ref.invalidate] or the app shuts down.
@@ -117,6 +182,19 @@ final class TerminalControllerFamily extends $Family
 }
 
 /// Owns the [Pty] + xterm [Terminal] lifecycle for a single session.
+///
+/// The `claude` process is spawned lazily on the first layout-driven resize so
+/// the pty starts at the terminal's real column/row count — spawning at a
+/// default size first causes the TUI to reflow and duplicate its output.
+///
+/// `reflowEnabled: false` and a synchronous (non-debounced) pty resize are both
+/// load-bearing: `claude` is an Ink TUI that redraws on SIGWINCH by clearing the
+/// previous frame's line count and repainting. xterm's reflow rewraps the
+/// on-screen frame without moving the cursor with it, so claude's clear misses
+/// the old frame (duplicate banner); debouncing the pty resize lets xterm's
+/// buffer width drift from the pty width, so claude paints against a stale width
+/// (stranded text / double cursor). Keeping reflow off and the resize in lockstep
+/// with the pty mirrors how `claude` behaves in a real terminal.
 ///
 /// Kept alive so switching between session tabs does not kill the running
 /// `claude` process; disposed (and the pty killed) only when the session is

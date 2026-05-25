@@ -19,6 +19,7 @@ class ProjectsScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final projectsAsync = ref.watch(projectsProvider);
     final selectedId = ref.watch(selectedProjectIdProvider);
+    final selected = _selectedProject(projectsAsync.value, selectedId);
 
     return Scaffold(
       body: Row(
@@ -78,7 +79,14 @@ class ProjectsScreen extends ConsumerWidget {
           ),
           const VerticalDivider(width: 0.5, color: AppColors.border),
           Expanded(
-            child: _detail(context, l10n, projectsAsync.value, selectedId),
+            child: selected == null
+                ? Center(
+                    child: Text(
+                      l10n.noSessionSelected,
+                      style: AppTypography.label,
+                    ),
+                  )
+                : ProjectSessionsScreen(project: selected),
           ),
         ],
       ),
@@ -90,21 +98,6 @@ class ProjectsScreen extends ConsumerWidget {
     if (path == null) return;
     final notifier = ref.read(projectsProvider.notifier);
     await notifier.addProjectByPath(path);
-  }
-
-  Widget _detail(
-    BuildContext context,
-    AppLocalizations l10n,
-    List<Project>? projects,
-    String? selectedId,
-  ) {
-    final selected = _selectedProject(projects, selectedId);
-    if (selected == null) {
-      return Center(
-        child: Text(l10n.noSessionSelected, style: AppTypography.label),
-      );
-    }
-    return ProjectSessionsScreen(project: selected);
   }
 
   Project? _selectedProject(List<Project>? projects, String? selectedId) {
