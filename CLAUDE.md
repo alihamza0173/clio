@@ -53,6 +53,10 @@ Feature-first **clean architecture**. Shared code in `core/`; each feature in `f
 
 - **Always run `dart format` on a Dart file after you finish editing it** (e.g. `dart format lib/path/to/file.dart`) before moving on.
 - **No comments** in source unless they capture non-obvious intent. Match surrounding style.
+- **Use dot shorthands** (SDK is Dart 3.12) wherever the target type is inferred: `.stretch` for `crossAxisAlignment`, `const .all(12)` / `const .symmetric(...)` for `EdgeInsets`, `.zero`, `.ellipsis`, `.centerLeft`, etc. `dart format` and `flutter analyze` accept them.
+- **Prefer adaptive widgets so macOS gets native Cupertino chrome**: `showAdaptiveDialog` + `AlertDialog.adaptive`, branching to `CupertinoDialogAction` (use `isDestructiveAction` for destructive choices) under `Platform.isMacOS` with a `TextButton` fallback; `CircularProgressIndicator.adaptive()`. Note: adaptive spinners render `CupertinoActivityIndicator` on macOS and ignore the Material `progressIndicatorTheme`.
+- **Centralize shared widget styling in `AppTheme`** (`DividerThemeData`, `ProgressIndicatorThemeData`, …) rather than passing the same props per-widget. `Divider`/`VerticalDivider` default `height` to 16 — set it explicitly when you need a hairline.
+- **Import order:** `package:` imports before relative (`../`) imports.
 - **Riverpod 4.x generator strips the `Notifier` suffix**: `class ProjectsNotifier` → `projectsProvider` (NOT `projectsNotifierProvider`). `Controller`/`Id` suffixes are kept (`terminalControllerProvider`, `activeSessionIdProvider`).
 - `riverpod_annotation`/`riverpod_generator` are on the **4.x** line while the runtime (`flutter_riverpod`/`riverpod`) is **3.x** — this is the correct decoupled pairing; do not "align" them to the same major. `riverpod_generator`/`riverpod_lint` resolve to dev prereleases (only versions matching `riverpod 3.2.1`); leave them.
 - Provider files use `import 'package:riverpod_annotation/riverpod_annotation.dart';` and the non-generic `Ref`. Widgets import `flutter_riverpod`.
