@@ -1,3 +1,4 @@
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,7 +9,6 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../sessions/presentation/screens/project_sessions_screen.dart';
 import '../../domain/entities/project.dart';
 import '../providers/projects_notifier.dart';
-import '../widgets/add_project_button.dart';
 import '../widgets/project_tile.dart';
 
 class ProjectsScreen extends ConsumerWidget {
@@ -23,31 +23,73 @@ class ProjectsScreen extends ConsumerWidget {
     return Scaffold(
       body: Row(
         children: [
-          _ProjectsRail(
-            child: projectsAsync.when(
-              loading: () => const Center(
-                child: SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+          Container(
+            width: 240,
+            color: AppColors.surface,
+            child: Column(
+              crossAxisAlignment: .stretch,
+              children: [
+                Padding(
+                  padding: const .fromLTRB(12, 14, 12, 8),
+                  child: Text(
+                    l10n.projectsTitle.toUpperCase(),
+                    style: AppTypography.label,
+                  ),
                 ),
-              ),
-              error: (e, _) => Padding(
-                padding: const EdgeInsets.all(12),
-                child: Text('$e', style: AppTypography.label),
-              ),
-              data: (projects) => _ProjectsList(
-                projects: projects,
-                selectedId: selectedId,
-                emptyLabel: l10n.noProjects,
-              ),
+                Expanded(
+                  child: projectsAsync.when(
+                    loading: () => const Center(
+                      child: CircularProgressIndicator.adaptive(),
+                    ),
+                    error: (e, _) => Padding(
+                      padding: const .all(12),
+                      child: Text('$e', style: AppTypography.label),
+                    ),
+                    data: (projects) => _ProjectsList(
+                      projects: projects,
+                      selectedId: selectedId,
+                      emptyLabel: l10n.noProjects,
+                    ),
+                  ),
+                ),
+                const Divider(height: 0.5),
+                TextButton.icon(
+                  onPressed: () => _pickAndAdd(ref),
+                  icon: const Icon(
+                    Icons.add,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
+                  label: Text(
+                    l10n.addProject,
+                    style: const TextStyle(
+                      color: AppColors.textSubtle,
+                      fontSize: 12,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    alignment: .centerLeft,
+                    padding: const .symmetric(horizontal: 12, vertical: 12),
+                    shape: const RoundedRectangleBorder(),
+                  ),
+                ),
+              ],
             ),
           ),
           const VerticalDivider(width: 0.5, color: AppColors.border),
-          Expanded(child: _detail(context, l10n, projectsAsync.value, selectedId)),
+          Expanded(
+            child: _detail(context, l10n, projectsAsync.value, selectedId),
+          ),
         ],
       ),
     );
+  }
+
+  Future<void> _pickAndAdd(WidgetRef ref) async {
+    final path = await getDirectoryPath();
+    if (path == null) return;
+    final notifier = ref.read(projectsProvider.notifier);
+    await notifier.addProjectByPath(path);
   }
 
   Widget _detail(
@@ -74,34 +116,6 @@ class ProjectsScreen extends ConsumerWidget {
   }
 }
 
-class _ProjectsRail extends StatelessWidget {
-  const _ProjectsRail({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Container(
-      width: 240,
-      color: AppColors.surface,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 14, 12, 8),
-            child: Text(l10n.projectsTitle.toUpperCase(),
-                style: AppTypography.label),
-          ),
-          Expanded(child: child),
-          const Divider(height: 0.5, color: AppColors.border),
-          const AddProjectButton(),
-        ],
-      ),
-    );
-  }
-}
-
 class _ProjectsList extends StatelessWidget {
   const _ProjectsList({
     required this.projects,
@@ -117,12 +131,12 @@ class _ProjectsList extends StatelessWidget {
   Widget build(BuildContext context) {
     if (projects.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const .all(12),
         child: Text(emptyLabel, style: AppTypography.label),
       );
     }
     return ListView.builder(
-      padding: EdgeInsets.zero,
+      padding: .zero,
       itemCount: projects.length,
       itemBuilder: (_, i) => ProjectTile(
         project: projects[i],

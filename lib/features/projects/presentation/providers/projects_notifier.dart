@@ -48,8 +48,10 @@ class ProjectsNotifier extends _$ProjectsNotifier {
   }
 
   String _basename(String path) {
-    final parts =
-        path.split(RegExp(r'[/\\]')).where((s) => s.isNotEmpty).toList();
+    final parts = path
+        .split(RegExp(r'[/\\]'))
+        .where((s) => s.isNotEmpty)
+        .toList();
     return parts.isEmpty ? path : parts.last;
   }
 }

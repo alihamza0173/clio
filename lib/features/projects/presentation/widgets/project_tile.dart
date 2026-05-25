@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,11 +12,7 @@ import '../../domain/entities/project.dart';
 import '../providers/projects_notifier.dart';
 
 class ProjectTile extends ConsumerWidget {
-  const ProjectTile({
-    super.key,
-    required this.project,
-    required this.selected,
-  });
+  const ProjectTile({super.key, required this.project, required this.selected});
 
   final Project project;
   final bool selected;
@@ -27,7 +26,7 @@ class ProjectTile extends ConsumerWidget {
         onTap: () =>
             ref.read(selectedProjectIdProvider.notifier).select(project.id),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const .symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
             border: Border(
               left: BorderSide(
@@ -38,17 +37,20 @@ class ProjectTile extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              const Icon(Icons.folder_outlined,
-                  size: 16, color: AppColors.textSecondary),
+              const Icon(
+                Icons.folder_outlined,
+                size: 16,
+                color: AppColors.textSecondary,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: .stretch,
                   children: [
                     Text(
                       project.name,
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      overflow: .ellipsis,
                       style: AppTypography.tab.copyWith(
                         color: selected
                             ? AppColors.textPrimary
@@ -58,7 +60,7 @@ class ProjectTile extends ConsumerWidget {
                     Text(
                       project.path,
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      overflow: .ellipsis,
                       style: const TextStyle(
                         fontFamily: AppTypography.fontFamily,
                         fontSize: 9,
@@ -87,20 +89,32 @@ class ProjectTile extends ConsumerWidget {
     WidgetRef ref,
     AppLocalizations l10n,
   ) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAdaptiveDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AlertDialog.adaptive(
         backgroundColor: AppColors.surface,
         content: Text(l10n.removeProjectConfirm(project.name)),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.remove),
-          ),
+          if (Platform.isMacOS) ...[
+            CupertinoDialogAction(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.cancel),
+            ),
+            CupertinoDialogAction(
+              onPressed: () => Navigator.of(context).pop(true),
+              isDestructiveAction: true,
+              child: Text(l10n.remove),
+            ),
+          ] else ...[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(l10n.remove),
+            ),
+          ],
         ],
       ),
     );

@@ -16,6 +16,14 @@ abstract final class AppTheme {
       ),
       dividerColor: AppColors.border,
       textTheme: base.textTheme.apply(fontFamily: AppTypography.fontFamily),
+      dividerTheme: const DividerThemeData(
+        thickness: 0.5,
+        color: AppColors.border,
+      ),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        constraints: BoxConstraints(minWidth: 18, minHeight: 18),
+        strokeWidth: 2,
+      ),
     );
   }
 }

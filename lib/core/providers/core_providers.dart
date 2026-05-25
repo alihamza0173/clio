@@ -17,9 +17,7 @@ final storageServiceProvider = Provider<KeyValueStore>(
   (ref) => SharedPreferencesStore(ref.watch(sharedPreferencesProvider)),
 );
 
-final uuidServiceProvider = Provider<UuidService>(
-  (ref) => const UuidService(),
-);
+final uuidServiceProvider = Provider<UuidService>((ref) => const UuidService());
 
 final processServiceProvider = Provider<ProcessService>(
   (ref) => const ProcessService(),
