@@ -16,25 +16,42 @@ part 'terminal_controller.g.dart';
 
 /// Owns the [Pty] + xterm [Terminal] lifecycle for a single session.
 ///
+/// The `claude` process is spawned lazily on the first layout-driven resize so
+/// the pty starts at the terminal's real column/row count — spawning at a
+/// default size first causes the TUI to reflow and duplicate its output.
+///
 /// Kept alive so switching between session tabs does not kill the running
 /// `claude` process; disposed (and the pty killed) only when the session is
 /// removed via [ref.invalidate] or the app shuts down.
 @Riverpod(keepAlive: true)
 class TerminalController extends _$TerminalController {
   PtyHandle? _pty;
+  bool _starting = false;
 
   @override
   Terminal build(String projectId, String sessionId) {
     final terminal = Terminal(maxLines: 10000);
-    terminal.onOutput =
-        (data) => _pty?.write(Uint8List.fromList(utf8.encode(data)));
-    terminal.onResize = (width, height, pw, ph) => _pty?.resize(height, width);
+    terminal.onOutput = (data) =>
+        _pty?.write(Uint8List.fromList(utf8.encode(data)));
+    terminal.onResize = (width, height, pixelWidth, pixelHeight) {
+      final pty = _pty;
+      if (pty != null) {
+        pty.resize(height, width);
+      } else {
+        _launch(terminal, rows: height, columns: width);
+      }
+    };
     ref.onDispose(() => _pty?.kill());
-    _launch(terminal);
     return terminal;
   }
 
-  Future<void> _launch(Terminal terminal) async {
+  Future<void> _launch(
+    Terminal terminal, {
+    required int rows,
+    required int columns,
+  }) async {
+    if (_starting || _pty != null || rows <= 0 || columns <= 0) return;
+    _starting = true;
     try {
       final project = _findProject(await ref.read(projectsProvider.future));
       if (project == null) {
@@ -53,18 +70,26 @@ class TerminalController extends _$TerminalController {
           ? ['--resume', session.id]
           : ['--session-id', session.id];
 
-      final environment =
-          await ref.read(shellEnvServiceProvider).buildEnvironment();
+      final environment = await ref
+          .read(shellEnvServiceProvider)
+          .buildEnvironment();
 
-      final pty = ref.read(ptyServiceProvider).start(
+      final pty = ref
+          .read(ptyServiceProvider)
+          .start(
             executable: AppConstants.claudeExecutable,
             arguments: args,
             workingDirectory: project.path,
             environment: environment,
-            rows: terminal.viewHeight > 0 ? terminal.viewHeight : 24,
-            columns: terminal.viewWidth > 0 ? terminal.viewWidth : 80,
+            rows: rows,
+            columns: columns,
           );
       _pty = pty;
+      if (terminal.viewWidth > 0 &&
+          terminal.viewHeight > 0 &&
+          (terminal.viewWidth != columns || terminal.viewHeight != rows)) {
+        pty.resize(terminal.viewHeight, terminal.viewWidth);
+      }
       pty.output.listen(
         (data) => terminal.write(utf8.decode(data, allowMalformed: true)),
       );
@@ -75,6 +100,7 @@ class TerminalController extends _$TerminalController {
             .markStarted(session.id);
       }
     } catch (e) {
+      _starting = false;
       terminal.write(
         'clio: failed to launch ${AppConstants.claudeExecutable}: $e\r\n',
       );
