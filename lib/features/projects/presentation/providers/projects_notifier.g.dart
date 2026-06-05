@@ -132,7 +132,7 @@ final class SelectedProjectIdProvider
   }
 }
 
-String _$selectedProjectIdHash() => r'f706c83bbff05ec581afd6cf9e9f3f1a6bbcaca2';
+String _$selectedProjectIdHash() => r'e8a93d6c7c4799d4084e1951403989a236cfd48d';
 
 abstract class _$SelectedProjectId extends $Notifier<String?> {
   String? build();

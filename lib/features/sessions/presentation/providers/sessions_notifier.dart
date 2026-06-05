@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/providers/core_providers.dart';
 import '../../data/datasources/session_local_datasource.dart';
 import '../../data/repositories/session_repository_impl.dart';
@@ -10,6 +11,7 @@ import '../../domain/usecases/get_sessions.dart';
 import '../../domain/usecases/mark_session_started.dart';
 import '../../domain/usecases/remove_session.dart';
 import '../../domain/usecases/rename_session.dart';
+import '../../domain/usecases/update_resume_id.dart';
 
 part 'sessions_notifier.g.dart';
 
@@ -58,6 +60,17 @@ class SessionsNotifier extends _$SessionsNotifier {
     await future;
   }
 
+  Future<void> updateResumeId(String sessionId, String resumeId) async {
+    final repo = ref.read(sessionRepositoryProvider);
+    await UpdateResumeId(repo)(
+      projectId: projectId,
+      sessionId: sessionId,
+      resumeId: resumeId,
+    );
+    ref.invalidateSelf();
+    await future;
+  }
+
   Future<void> remove(String sessionId) async {
     final repo = ref.read(sessionRepositoryProvider);
     await RemoveSession(repo)(projectId: projectId, sessionId: sessionId);
@@ -69,7 +82,18 @@ class SessionsNotifier extends _$SessionsNotifier {
 @riverpod
 class ActiveSessionId extends _$ActiveSessionId {
   @override
-  String? build(String projectId) => null;
+  String? build(String projectId) => ref
+      .read(storageServiceProvider)
+      .getString(AppConstants.activeSessionStorageKey(projectId));
 
-  void select(String? id) => state = id;
+  void select(String? id) {
+    state = id;
+    final store = ref.read(storageServiceProvider);
+    final key = AppConstants.activeSessionStorageKey(projectId);
+    if (id == null) {
+      store.remove(key);
+    } else {
+      store.setString(key, id);
+    }
+  }
 }

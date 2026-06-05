@@ -97,7 +97,7 @@ final class SessionsNotifierProvider
   }
 }
 
-String _$sessionsNotifierHash() => r'd455f28d43dacc0b1f1c3974889d6a42b7914f59';
+String _$sessionsNotifierHash() => r'b161159323c5e1d290c4f41410794569ad45fd73';
 
 final class SessionsNotifierFamily extends $Family
     with
@@ -194,7 +194,7 @@ final class ActiveSessionIdProvider
   }
 }
 
-String _$activeSessionIdHash() => r'da99385a546916a3a6ba7ef04e9525254ecbe635';
+String _$activeSessionIdHash() => r'3e5bc160ab5eb0aa00e5a1c7fded2dbc3a170e9b';
 
 final class ActiveSessionIdFamily extends $Family
     with

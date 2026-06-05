@@ -12,6 +12,11 @@ abstract interface class SessionRepository {
     required String sessionId,
     required String title,
   });
+  Future<void> updateResumeId({
+    required String projectId,
+    required String sessionId,
+    required String resumeId,
+  });
   Future<void> removeSession({
     required String projectId,
     required String sessionId,

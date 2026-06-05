@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
 import 'dart:typed_data';
@@ -37,6 +38,13 @@ part 'terminal_controller.g.dart';
 class TerminalController extends _$TerminalController {
   PtyHandle? _pty;
   bool _starting = false;
+  bool _disposed = false;
+  Timer? _reconcileTimer;
+  DateTime? _launchTime;
+  String? _projectPath;
+  String? _resumeId;
+  String? _lastResolvedResumeId;
+  String? _currentTitle;
 
   @override
   Terminal build(String projectId, String sessionId) {
@@ -55,7 +63,11 @@ class TerminalController extends _$TerminalController {
         pty.resize(height, width);
       }
     };
-    ref.onDispose(() => _pty?.kill());
+    ref.onDispose(() {
+      _disposed = true;
+      _reconcileTimer?.cancel();
+      _pty?.kill();
+    });
     return terminal;
   }
 

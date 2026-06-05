@@ -66,6 +66,23 @@ class SessionRepositoryImpl implements SessionRepository {
   }
 
   @override
+  Future<void> updateResumeId({
+    required String projectId,
+    required String sessionId,
+    required String resumeId,
+  }) async {
+    final sessions = await _local.readSessions(projectId);
+    final updated = [
+      for (final s in sessions)
+        if (s.id == sessionId)
+          SessionModel.fromEntity(s.copyWith(resumeId: resumeId))
+        else
+          s,
+    ];
+    await _local.writeSessions(projectId, updated);
+  }
+
+  @override
   Future<void> removeSession({
     required String projectId,
     required String sessionId,

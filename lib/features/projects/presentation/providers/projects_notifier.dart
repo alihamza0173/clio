@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/providers/core_providers.dart';
 import '../../data/datasources/project_local_datasource.dart';
 import '../../data/repositories/project_repository_impl.dart';
@@ -59,7 +60,17 @@ class ProjectsNotifier extends _$ProjectsNotifier {
 @riverpod
 class SelectedProjectId extends _$SelectedProjectId {
   @override
-  String? build() => null;
+  String? build() => ref
+      .read(storageServiceProvider)
+      .getString(AppConstants.selectedProjectStorageKey);
 
-  void select(String? id) => state = id;
+  void select(String? id) {
+    state = id;
+    final store = ref.read(storageServiceProvider);
+    if (id == null) {
+      store.remove(AppConstants.selectedProjectStorageKey);
+    } else {
+      store.setString(AppConstants.selectedProjectStorageKey, id);
+    }
+  }
 }
