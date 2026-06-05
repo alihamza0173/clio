@@ -43,7 +43,6 @@ class TerminalController extends _$TerminalController {
   DateTime? _launchTime;
   String? _projectPath;
   String? _resumeId;
-  String? _lastResolvedResumeId;
   String? _currentTitle;
 
   @override
@@ -100,12 +99,17 @@ class TerminalController extends _$TerminalController {
       }
 
       final args = session.claudeStarted
-          ? ['--resume', session.id]
+          ? ['--resume', session.resumeId]
           : ['--session-id', session.id];
 
       final environment = await ref
           .read(shellEnvServiceProvider)
           .buildEnvironment();
+
+      _projectPath = project.path;
+      _resumeId = session.resumeId;
+      _currentTitle = session.title;
+      _launchTime = DateTime.now();
 
       final pty = ref
           .read(ptyServiceProvider)
@@ -123,25 +127,15 @@ class TerminalController extends _$TerminalController {
           (terminal.viewWidth != columns || terminal.viewHeight != rows)) {
         pty.resize(terminal.viewHeight, terminal.viewWidth);
       }
-      pty.output.listen(
-        (data) => terminal.write(utf8.decode(data, allowMalformed: true)),
-      );
+      pty.output.listen((data) {
+        terminal.write(utf8.decode(data, allowMalformed: true));
+        _scheduleReconcile();
+      });
 
       if (!session.claudeStarted) {
         await ref
             .read(sessionsProvider(projectId).notifier)
             .markStarted(session.id);
-      }
-
-      final claudeTitle = await ref
-          .read(claudeSessionServiceProvider)
-          .readTitle(projectPath: project.path, sessionId: session.id);
-      if (claudeTitle != null &&
-          claudeTitle.isNotEmpty &&
-          claudeTitle != session.title) {
-        await ref
-            .read(sessionsProvider(projectId).notifier)
-            .rename(session.id, claudeTitle);
       }
     } catch (e) {
       _starting = false;
@@ -149,6 +143,56 @@ class TerminalController extends _$TerminalController {
         'clio: failed to launch ${AppConstants.claudeExecutable}: $e\r\n',
       );
     }
+  }
+
+  void _scheduleReconcile() {
+    if (_disposed) return;
+    _reconcileTimer?.cancel();
+    _reconcileTimer = Timer(const Duration(milliseconds: 1500), _reconcile);
+  }
+
+  Future<void> _reconcile() async {
+    if (_disposed) return;
+    final projectPath = _projectPath;
+    final launchTime = _launchTime;
+    if (projectPath == null || launchTime == null) return;
+
+    final service = ref.read(claudeSessionServiceProvider);
+    try {
+      final sessions = await ref.read(sessionsProvider(projectId).future);
+      if (_disposed) return;
+      final excludeIds = <String>{
+        for (final s in sessions)
+          if (s.id != sessionId) ...[s.id, s.resumeId],
+      };
+
+      final found = await service.findActiveSessionId(
+        projectPath: projectPath,
+        since: launchTime,
+        excludeIds: excludeIds,
+      );
+      if (_disposed || found == null) return;
+
+      if (found != _resumeId) {
+        _resumeId = found;
+        await ref
+            .read(sessionsProvider(projectId).notifier)
+            .updateResumeId(sessionId, found);
+        if (_disposed) return;
+      }
+
+      final title = await service.readTitle(
+        projectPath: projectPath,
+        sessionId: found,
+      );
+      if (_disposed) return;
+      if (title != null && title.isNotEmpty && title != _currentTitle) {
+        _currentTitle = title;
+        await ref
+            .read(sessionsProvider(projectId).notifier)
+            .rename(sessionId, title);
+      }
+    } catch (_) {}
   }
 
   Project? _findProject(List<Project> projects) {

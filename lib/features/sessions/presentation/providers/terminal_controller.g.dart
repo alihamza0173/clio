@@ -113,7 +113,7 @@ final class TerminalControllerProvider
 }
 
 String _$terminalControllerHash() =>
-    r'de5f9c2bef73131815520d0a5b122c082191211d';
+    r'f844d71447f31086dba640d2d2d3e37e25e621c6';
 
 /// Owns the [Pty] + xterm [Terminal] lifecycle for a single session.
 ///
