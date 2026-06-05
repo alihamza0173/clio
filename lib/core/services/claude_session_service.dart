@@ -29,6 +29,15 @@ class ClaudeSessionService {
     }
   }
 
+  Future<bool> hasResumableTranscript({
+    required String projectPath,
+    required String sessionId,
+  }) async {
+    final file = await _locateTranscript(projectPath, sessionId);
+    if (file == null) return false;
+    return _hasRealContent(file);
+  }
+
   Future<String?> findActiveSessionId({
     required String projectPath,
     required DateTime since,

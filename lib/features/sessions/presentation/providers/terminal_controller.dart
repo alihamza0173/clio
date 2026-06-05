@@ -98,7 +98,15 @@ class TerminalController extends _$TerminalController {
         return;
       }
 
-      final args = session.claudeStarted
+      final resumable =
+          session.claudeStarted &&
+          await ref
+              .read(claudeSessionServiceProvider)
+              .hasResumableTranscript(
+                projectPath: project.path,
+                sessionId: session.resumeId,
+              );
+      final args = resumable
           ? ['--resume', session.resumeId]
           : ['--session-id', session.id];
 
