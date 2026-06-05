@@ -7,6 +7,11 @@ abstract interface class SessionRepository {
     required String projectId,
     required String sessionId,
   });
+  Future<void> renameSession({
+    required String projectId,
+    required String sessionId,
+    required String title,
+  });
   Future<void> removeSession({
     required String projectId,
     required String sessionId,

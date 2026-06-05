@@ -9,6 +9,7 @@ import '../../domain/usecases/create_session.dart';
 import '../../domain/usecases/get_sessions.dart';
 import '../../domain/usecases/mark_session_started.dart';
 import '../../domain/usecases/remove_session.dart';
+import '../../domain/usecases/rename_session.dart';
 
 part 'sessions_notifier.g.dart';
 
@@ -30,8 +31,10 @@ class SessionsNotifier extends _$SessionsNotifier {
 
   Future<Session> create({String? title}) async {
     final repo = ref.read(sessionRepositoryProvider);
-    final session =
-        await CreateSession(repo)(projectId: projectId, title: title);
+    final session = await CreateSession(repo)(
+      projectId: projectId,
+      title: title,
+    );
     ref.invalidateSelf();
     await future;
     return session;
@@ -40,6 +43,17 @@ class SessionsNotifier extends _$SessionsNotifier {
   Future<void> markStarted(String sessionId) async {
     final repo = ref.read(sessionRepositoryProvider);
     await MarkSessionStarted(repo)(projectId: projectId, sessionId: sessionId);
+    ref.invalidateSelf();
+    await future;
+  }
+
+  Future<void> rename(String sessionId, String title) async {
+    final repo = ref.read(sessionRepositoryProvider);
+    await RenameSession(repo)(
+      projectId: projectId,
+      sessionId: sessionId,
+      title: title,
+    );
     ref.invalidateSelf();
     await future;
   }

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../services/claude_session_service.dart';
 import '../services/process_service.dart';
 import '../services/pty_service.dart';
 import '../services/shell_env_service.dart';
@@ -29,4 +30,8 @@ final shellEnvServiceProvider = Provider<ShellEnvService>(
 
 final ptyServiceProvider = Provider<PtyService>(
   (ref) => const FlutterPtyService(),
+);
+
+final claudeSessionServiceProvider = Provider<ClaudeSessionService>(
+  (ref) => const ClaudeSessionService(),
 );

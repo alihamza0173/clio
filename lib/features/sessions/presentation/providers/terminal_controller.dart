@@ -120,6 +120,17 @@ class TerminalController extends _$TerminalController {
             .read(sessionsProvider(projectId).notifier)
             .markStarted(session.id);
       }
+
+      final claudeTitle = await ref
+          .read(claudeSessionServiceProvider)
+          .readTitle(projectPath: project.path, sessionId: session.id);
+      if (claudeTitle != null &&
+          claudeTitle.isNotEmpty &&
+          claudeTitle != session.title) {
+        await ref
+            .read(sessionsProvider(projectId).notifier)
+            .rename(session.id, claudeTitle);
+      }
     } catch (e) {
       _starting = false;
       terminal.write(
