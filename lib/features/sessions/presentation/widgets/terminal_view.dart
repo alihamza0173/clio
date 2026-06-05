@@ -1,3 +1,4 @@
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:xterm/xterm.dart';
@@ -23,17 +24,28 @@ class SessionTerminalView extends ConsumerWidget {
     );
     return ColoredBox(
       color: AppColors.background,
-      child: Directionality(
-        textDirection: .ltr,
-        child: TerminalView(
-          terminal,
-          autofocus: true,
-          padding: const EdgeInsets.all(8),
-          theme: TerminalThemes.defaultTheme,
-          textStyle: const TerminalStyle(
-            fontFamily: AppTypography.fontFamily,
-            fontSize: 13,
-            height: 1.3,
+      child: DropTarget(
+        onDragDone: (detail) {
+          final paths = <String>[];
+          for (final file in detail.files) {
+            final path = file.path;
+            if (path.isEmpty) continue;
+            paths.add(path.contains(RegExp(r'\s')) ? "'$path'" : path);
+          }
+          if (paths.isNotEmpty) terminal.paste('${paths.join(' ')} ');
+        },
+        child: Directionality(
+          textDirection: .ltr,
+          child: TerminalView(
+            terminal,
+            autofocus: true,
+            padding: const EdgeInsets.all(8),
+            theme: TerminalThemes.defaultTheme,
+            textStyle: const TerminalStyle(
+              fontFamily: AppTypography.fontFamily,
+              fontSize: 13,
+              height: 1.3,
+            ),
           ),
         ),
       ),

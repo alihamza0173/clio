@@ -12,6 +12,7 @@ import '../../domain/usecases/mark_session_started.dart';
 import '../../domain/usecases/remove_session.dart';
 import '../../domain/usecases/rename_session.dart';
 import '../../domain/usecases/update_resume_id.dart';
+import '../../../projects/presentation/providers/projects_notifier.dart';
 
 part 'sessions_notifier.g.dart';
 
@@ -26,9 +27,62 @@ SessionRepository sessionRepository(Ref ref) {
 @riverpod
 class SessionsNotifier extends _$SessionsNotifier {
   @override
-  Future<List<Session>> build(String projectId) {
+  Future<List<Session>> build(String projectId) async {
     final repo = ref.watch(sessionRepositoryProvider);
-    return GetSessions(repo)(projectId);
+    final sessions = await GetSessions(repo)(projectId);
+    return _syncTitlesFromDisk(projectId, sessions, repo);
+  }
+
+  Future<List<Session>> _syncTitlesFromDisk(
+    String projectId,
+    List<Session> sessions,
+    SessionRepository repo,
+  ) async {
+    if (sessions.isEmpty) return sessions;
+
+    String? projectPath;
+    for (final p in await ref.read(projectsProvider.future)) {
+      if (p.id == projectId) {
+        projectPath = p.path;
+        break;
+      }
+    }
+    if (projectPath == null) return sessions;
+
+    final service = ref.read(claudeSessionServiceProvider);
+    final path = projectPath;
+    final titles = await Future.wait([
+      for (final s in sessions)
+        s.claudeStarted
+            ? service.readTitle(projectPath: path, sessionId: s.resumeId)
+            : Future<String?>.value(),
+    ]);
+
+    var changed = false;
+    final updated = <Session>[];
+    for (var i = 0; i < sessions.length; i++) {
+      final s = sessions[i];
+      final title = titles[i];
+      if (title != null && title.isNotEmpty && title != s.title) {
+        updated.add(s.copyWith(title: title));
+        changed = true;
+      } else {
+        updated.add(s);
+      }
+    }
+
+    if (changed) {
+      for (var i = 0; i < sessions.length; i++) {
+        if (!identical(updated[i], sessions[i])) {
+          await repo.renameSession(
+            projectId: projectId,
+            sessionId: sessions[i].id,
+            title: updated[i].title,
+          );
+        }
+      }
+    }
+    return updated;
   }
 
   Future<Session> create({String? title}) async {
