@@ -1,8 +1,34 @@
 import 'dart:convert';
 import 'dart:io';
 
+typedef ClaudeSessionInfo = ({String? sessionId, String? name});
+
 class ClaudeSessionService {
   const ClaudeSessionService();
+
+  /// Reads `~/.claude/sessions/<pid>.json`, which claude maintains per running
+  /// process. Its `sessionId`/`name` reflect the *current* conversation — they
+  /// update when the user `/resume`s a different chat inside the running TUI —
+  /// so this is the authoritative, pid-attributable source of truth.
+  Future<ClaudeSessionInfo?> readSessionByPid(int pid) async {
+    final home =
+        Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+    if (home == null || home.isEmpty) return null;
+    final file = File('$home/.claude/sessions/$pid.json');
+    try {
+      if (!await file.exists()) return null;
+      final decoded =
+          jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+      final sessionId = decoded['sessionId'];
+      final name = decoded['name'];
+      return (
+        sessionId: sessionId is String ? sessionId : null,
+        name: name is String ? name : null,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
 
   Future<String?> readTitle({
     required String projectPath,
@@ -38,35 +64,6 @@ class ClaudeSessionService {
     return _hasRealContent(file);
   }
 
-  Future<String?> findActiveSessionId({
-    required String projectPath,
-    required DateTime since,
-    required Set<String> excludeIds,
-  }) async {
-    final dir = _projectDir(projectPath);
-    if (dir == null || !await dir.exists()) return null;
-    final threshold = since.subtract(const Duration(seconds: 2));
-    final candidates = <({File file, String id, DateTime mtime})>[];
-    try {
-      await for (final entity in dir.list(followLinks: false)) {
-        if (entity is! File || !entity.path.endsWith('.jsonl')) continue;
-        final name = entity.uri.pathSegments.last;
-        final id = name.substring(0, name.length - '.jsonl'.length);
-        if (excludeIds.contains(id)) continue;
-        final stat = await entity.stat();
-        if (stat.modified.isBefore(threshold)) continue;
-        candidates.add((file: entity, id: id, mtime: stat.modified));
-      }
-    } catch (_) {
-      return null;
-    }
-    candidates.sort((a, b) => b.mtime.compareTo(a.mtime));
-    for (final c in candidates) {
-      if (await _hasRealContent(c.file)) return c.id;
-    }
-    return null;
-  }
-
   Future<bool> _hasRealContent(File file) async {
     try {
       final lines = await file.readAsLines();
@@ -78,12 +75,6 @@ class ClaudeSessionService {
       }
     } catch (_) {}
     return false;
-  }
-
-  Directory? _projectDir(String projectPath) {
-    final root = _projectsRoot();
-    if (root == null) return null;
-    return Directory('${root.path}/${_encode(projectPath)}');
   }
 
   Future<File?> _locateTranscript(String projectPath, String sessionId) async {

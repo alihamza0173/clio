@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter_pty/flutter_pty.dart';
 
 abstract interface class PtyHandle {
+  int get pid;
   Stream<Uint8List> get output;
   Future<int> get exitCode;
   void write(Uint8List data);
@@ -49,6 +50,9 @@ class _FlutterPtyHandle implements PtyHandle {
   _FlutterPtyHandle(this._pty);
 
   final Pty _pty;
+
+  @override
+  int get pid => _pty.pid;
 
   @override
   Stream<Uint8List> get output => _pty.output;

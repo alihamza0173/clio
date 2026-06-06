@@ -40,7 +40,6 @@ class TerminalController extends _$TerminalController {
   bool _starting = false;
   bool _disposed = false;
   Timer? _reconcileTimer;
-  DateTime? _launchTime;
   String? _projectPath;
   String? _resumeId;
   String? _currentTitle;
@@ -117,7 +116,6 @@ class TerminalController extends _$TerminalController {
       _projectPath = project.path;
       _resumeId = session.resumeId;
       _currentTitle = session.title;
-      _launchTime = DateTime.now();
 
       final pty = ref
           .read(ptyServiceProvider)
@@ -161,27 +159,17 @@ class TerminalController extends _$TerminalController {
 
   Future<void> _reconcile() async {
     if (_disposed) return;
+    final pty = _pty;
     final projectPath = _projectPath;
-    final launchTime = _launchTime;
-    if (projectPath == null || launchTime == null) return;
+    if (pty == null || projectPath == null) return;
 
     final service = ref.read(claudeSessionServiceProvider);
     try {
-      final sessions = await ref.read(sessionsProvider(projectId).future);
-      if (_disposed) return;
-      final excludeIds = <String>{
-        for (final s in sessions)
-          if (s.id != sessionId) ...[s.id, s.resumeId],
-      };
+      final info = await service.readSessionByPid(pty.pid);
+      if (_disposed || info == null) return;
 
-      final found = await service.findActiveSessionId(
-        projectPath: projectPath,
-        since: launchTime,
-        excludeIds: excludeIds,
-      );
-      if (_disposed || found == null) return;
-
-      if (found != _resumeId) {
+      final found = info.sessionId;
+      if (found != null && found.isNotEmpty && found != _resumeId) {
         _resumeId = found;
         await ref
             .read(sessionsProvider(projectId).notifier)
@@ -189,11 +177,14 @@ class TerminalController extends _$TerminalController {
         if (_disposed) return;
       }
 
-      final title = await service.readTitle(
-        projectPath: projectPath,
-        sessionId: found,
-      );
-      if (_disposed) return;
+      var title = info.name;
+      if (title == null || title.isEmpty) {
+        title = await service.readTitle(
+          projectPath: projectPath,
+          sessionId: _resumeId ?? sessionId,
+        );
+        if (_disposed) return;
+      }
       if (title != null && title.isNotEmpty && title != _currentTitle) {
         _currentTitle = title;
         await ref
