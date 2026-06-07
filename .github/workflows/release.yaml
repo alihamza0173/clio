@@ -1,0 +1,76 @@
+# .github/workflows/release.yml
+name: Release
+
+on:
+    push:
+        tags:
+            - "v*"
+    workflow_dispatch:
+
+permissions:
+    contents: write
+
+jobs:
+    build:
+        name: Build ${{ matrix.target }}
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - os: macos-latest
+                      target: macos
+                    - os: windows-latest
+                      target: windows
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: subosito/flutter-action@v2
+              with:
+                  flutter-version: "3.44.1"
+                  cache: true
+
+            - name: Pub get + codegen
+              shell: bash
+              run: |
+                  flutter pub get
+                  dart run build_runner build --delete-conflicting-outputs
+                  flutter gen-l10n
+
+            - name: Build macOS
+              if: matrix.target == 'macos'
+              run: |
+                  flutter build macos --release
+                  cd build/macos/Build/Products/Release
+                  ditto -c -k --keepParent clio.app "${{ github.workspace }}/clio-${{ github.ref_name }}-macos.zip"
+
+            - name: Build Windows
+              if: matrix.target == 'windows'
+              shell: pwsh
+              run: |
+                  flutter build windows --release
+                  Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath "clio-${{ github.ref_name }}-windows-x64.zip"
+
+            - name: Upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: clio-${{ matrix.target }}
+                  path: "*.zip"
+                  if-no-files-found: error
+
+    release:
+        name: Create GitHub Release
+        needs: build
+        if: startsWith(github.ref, 'refs/tags/')
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/download-artifact@v4
+              with:
+                  path: artifacts
+                  merge-multiple: true
+
+            - uses: softprops/action-gh-release@v2
+              with:
+                  files: artifacts/*
+                  generate_release_notes: true
