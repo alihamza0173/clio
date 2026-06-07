@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Platform;
 import 'dart:typed_data';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:xterm/xterm.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/providers/core_providers.dart';
@@ -16,20 +14,50 @@ import 'sessions_notifier.dart';
 
 part 'terminal_controller.g.dart';
 
-/// Owns the [Pty] + xterm [Terminal] lifecycle for a single session.
+/// Facade handed to the webview-backed terminal widget for one session.
 ///
-/// The `claude` process is spawned lazily on the first layout-driven resize so
-/// the pty starts at the terminal's real column/row count — spawning at a
-/// default size first causes the TUI to reflow and duplicate its output.
+/// The widget pushes pty output toward the renderer via [onOutput] and feeds
+/// keyboard/paste/resize back through [handleInput]/[handleResize]; the first
+/// [handleReady] (emitted once xterm.js has a real column/row count) lazily
+/// launches `claude` at that exact size.
+class TerminalBridge {
+  TerminalBridge._(this._controller);
+
+  final TerminalController _controller;
+  void Function(Uint8List bytes)? _outputSink;
+  final List<Uint8List> _pending = [];
+
+  set onOutput(void Function(Uint8List bytes)? sink) {
+    _outputSink = sink;
+    if (sink != null && _pending.isNotEmpty) {
+      for (final b in _pending) {
+        sink(b);
+      }
+      _pending.clear();
+    }
+  }
+
+  void _emit(Uint8List bytes) {
+    final sink = _outputSink;
+    if (sink != null) {
+      sink(bytes);
+    } else {
+      _pending.add(bytes);
+    }
+  }
+
+  void handleReady(int cols, int rows) => _controller._onReady(rows, cols);
+  void handleResize(int cols, int rows) => _controller._onResize(rows, cols);
+  void handleInput(List<int> bytes) => _controller._write(bytes);
+}
+
+/// Owns the [PtyHandle] + [TerminalBridge] lifecycle for a single session.
 ///
-/// `reflowEnabled: false` and a synchronous (non-debounced) pty resize are both
-/// load-bearing: `claude` is an Ink TUI that redraws on SIGWINCH by clearing the
-/// previous frame's line count and repainting. xterm's reflow rewraps the
-/// on-screen frame without moving the cursor with it, so claude's clear misses
-/// the old frame (duplicate banner); debouncing the pty resize lets xterm's
-/// buffer width drift from the pty width, so claude paints against a stale width
-/// (stranded text / double cursor). Keeping reflow off and the resize in lockstep
-/// with the pty mirrors how `claude` behaves in a real terminal.
+/// `claude` is spawned lazily on the first ready handshake so the pty starts at
+/// the renderer's real column/row count — spawning at a default size first makes
+/// the Ink TUI reflow and duplicate its output. Resize is forwarded to the pty
+/// synchronously (no debounce) so the pty width never drifts from what xterm.js
+/// is painting, mirroring how `claude` behaves in a real terminal.
 ///
 /// Kept alive so switching between session tabs does not kill the running
 /// `claude` process; disposed (and the pty killed) only when the session is
@@ -43,57 +71,45 @@ class TerminalController extends _$TerminalController {
   String? _projectPath;
   String? _resumeId;
   String? _currentTitle;
+  late final TerminalBridge _bridge;
 
   @override
-  Terminal build(String projectId, String sessionId) {
-    final terminal = Terminal(
-      maxLines: 10000,
-      reflowEnabled: false,
-      platform: _terminalPlatform(),
-    );
-    terminal.onOutput = (data) =>
-        _pty?.write(Uint8List.fromList(utf8.encode(data)));
-    terminal.onResize = (width, height, pixelWidth, pixelHeight) {
-      final pty = _pty;
-      if (pty == null) {
-        _launch(terminal, rows: height, columns: width);
-      } else {
-        pty.resize(height, width);
-      }
-    };
+  TerminalBridge build(String projectId, String sessionId) {
+    _bridge = TerminalBridge._(this);
     ref.onDispose(() {
       _disposed = true;
       _reconcileTimer?.cancel();
       _pty?.kill();
     });
-    return terminal;
+    return _bridge;
   }
 
-  TerminalTargetPlatform _terminalPlatform() {
-    if (Platform.isMacOS) return TerminalTargetPlatform.macos;
-    if (Platform.isLinux) return TerminalTargetPlatform.linux;
-    if (Platform.isWindows) return TerminalTargetPlatform.windows;
-    return TerminalTargetPlatform.unknown;
+  void _onReady(int rows, int columns) {
+    if (_pty == null) _launch(rows: rows, columns: columns);
   }
 
-  Future<void> _launch(
-    Terminal terminal, {
-    required int rows,
-    required int columns,
-  }) async {
+  void _onResize(int rows, int columns) {
+    if (rows > 0 && columns > 0) _pty?.resize(rows, columns);
+  }
+
+  void _write(List<int> bytes) {
+    if (bytes.isNotEmpty) _pty?.write(Uint8List.fromList(bytes));
+  }
+
+  Future<void> _launch({required int rows, required int columns}) async {
     if (_starting || _pty != null || rows <= 0 || columns <= 0) return;
     _starting = true;
     try {
       final project = _findProject(await ref.read(projectsProvider.future));
       if (project == null) {
-        terminal.write('clio: project not found.\r\n');
+        _bridge._emit(_bytes('clio: project not found.\r\n'));
         return;
       }
       final session = _findSession(
         await ref.read(sessionsProvider(projectId).future),
       );
       if (session == null) {
-        terminal.write('clio: session not found.\r\n');
+        _bridge._emit(_bytes('clio: session not found.\r\n'));
         return;
       }
 
@@ -128,13 +144,8 @@ class TerminalController extends _$TerminalController {
             columns: columns,
           );
       _pty = pty;
-      if (terminal.viewWidth > 0 &&
-          terminal.viewHeight > 0 &&
-          (terminal.viewWidth != columns || terminal.viewHeight != rows)) {
-        pty.resize(terminal.viewHeight, terminal.viewWidth);
-      }
       pty.output.listen((data) {
-        terminal.write(utf8.decode(data, allowMalformed: true));
+        _bridge._emit(data);
         _scheduleReconcile();
       });
 
@@ -145,11 +156,15 @@ class TerminalController extends _$TerminalController {
       }
     } catch (e) {
       _starting = false;
-      terminal.write(
-        'clio: failed to launch ${AppConstants.claudeExecutable}: $e\r\n',
+      _bridge._emit(
+        _bytes(
+          'clio: failed to launch ${AppConstants.claudeExecutable}: $e\r\n',
+        ),
       );
     }
   }
+
+  Uint8List _bytes(String s) => Uint8List.fromList(utf8.encode(s));
 
   void _scheduleReconcile() {
     if (_disposed) return;

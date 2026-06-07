@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Web terminal renderer** (`WebTerminalView`): xterm.js hosted in `flutter_inappwebview`, replacing the `xterm` package widget. Hardware keyboard is captured by Flutter and forwarded to the PTY (WKWebView receives no keyboard on macOS), with Cmd+C/Cmd+V clipboard support. Assets bundled under `assets/web_terminal/` (xterm core + `fit`/`unicode11`/`web-links`/`webgl` addons, `bridge.js`, CSS).
+- **Terminal key encoder** (`terminal_key_encoder.dart`): maps Flutter `KeyEvent`s to PTY byte sequences — arrow keys, function keys, Ctrl/Alt modifiers, and UTF-8 characters.
+- **`ClaudeSessionService`**: reads live Claude TUI state by PID and transcript metadata; exposes `hasResumableTranscript()` and reads AI-assigned session titles.
+- **Session renaming**: rename a session; persisted locally and reconciled with Claude transcript titles on startup.
+- **Resume ID tracking**: sessions track a `resumeId` (the real Claude transcript id) distinct from the internal session UUID, auto-updated when the user resumes a different chat inside the running TUI.
+- **File drag-and-drop into the terminal** via `desktop_drop`; dropped paths are quoted and pasted.
+- **Persisted UI state**: remembers the last selected project and the active session per project (new keys `clio.selected_project`, `clio.active_session.<projectId>`).
+- **JetBrains Mono Medium** font for terminal weight 700.
+
+### Changed
+- `Session` entity gains a `resumeId` field (defaults to `id`), included in `copyWith`/equality.
+- `TerminalController` refactored around a `TerminalBridge`; spawns `claude` lazily at the renderer's exact columns/rows on first ready, and polls `ClaudeSessionService` by PID to reconcile `resumeId`.
+- `ProjectSessionsScreen` now keeps all session terminals mounted (`IndexedStack`) so state survives tab switches, and syncs titles from Claude transcripts on load.
+- `ShellEnvService` passes `CLAUDE_CODE_NO_FLICKER=1` to the `claude` process.
+
+### Fixed
+- Session titles stay in sync with user-assigned titles from the Claude TUI.
+- PTY starts at the renderer's exact size, avoiding double-render artifacts in Claude's Ink TUI.
+
+### Dependencies
+- Added `flutter_inappwebview ^6.1.5` and `desktop_drop ^0.6.0`.
+
 ## [0.1.0] - 2026-05-25
 
 ### Added

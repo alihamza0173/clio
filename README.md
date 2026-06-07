@@ -6,6 +6,13 @@ Add a project by picking its folder, then spawn multiple **sessions** inside it.
 
 > Early scaffold. The architecture, state management, and localization are in place; features are a work in progress — see [CHANGELOG.md](CHANGELOG.md).
 
+## Project status & contributions
+
+clio is in a **full development phase** — the architecture, APIs, and UI change
+frequently and without notice. **Pull requests are not reviewed or accepted**
+right now. You're welcome to **fork** it for your own use; it's MIT-licensed
+(see [LICENSE](LICENSE)).
+
 ## Features
 
 - **Projects** — add folders as projects; the list is persisted locally.

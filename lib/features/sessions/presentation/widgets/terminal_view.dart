@@ -1,27 +1,28 @@
+import 'dart:convert';
+
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:xterm/xterm.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
 import '../providers/terminal_controller.dart';
+import 'web_terminal_view.dart';
 
 class SessionTerminalView extends ConsumerWidget {
   const SessionTerminalView({
     super.key,
     required this.projectId,
     required this.sessionId,
+    required this.active,
   });
 
   final String projectId;
   final String sessionId;
+  final bool active;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final terminal = ref.watch(
-      terminalControllerProvider(projectId, sessionId),
-    );
+    final bridge = ref.watch(terminalControllerProvider(projectId, sessionId));
     return ColoredBox(
       color: AppColors.background,
       child: DropTarget(
@@ -32,21 +33,13 @@ class SessionTerminalView extends ConsumerWidget {
             if (path.isEmpty) continue;
             paths.add(path.contains(RegExp(r'\s')) ? "'$path'" : path);
           }
-          if (paths.isNotEmpty) terminal.paste('${paths.join(' ')} ');
+          if (paths.isNotEmpty) {
+            bridge.handleInput(utf8.encode('${paths.join(' ')} '));
+          }
         },
         child: Directionality(
           textDirection: .ltr,
-          child: TerminalView(
-            terminal,
-            autofocus: true,
-            padding: const EdgeInsets.all(8),
-            theme: TerminalThemes.defaultTheme,
-            textStyle: const TerminalStyle(
-              fontFamily: AppTypography.fontFamily,
-              fontSize: 13,
-              height: 1.3,
-            ),
-          ),
+          child: WebTerminalView(bridge: bridge, active: active),
         ),
       ),
     );
