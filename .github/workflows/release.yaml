@@ -24,7 +24,7 @@ jobs:
                       target: windows
 
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v6
 
             - uses: subosito/flutter-action@v2
               with:
@@ -50,10 +50,11 @@ jobs:
               shell: pwsh
               run: |
                   flutter build windows --release
+                  Copy-Item C:\Windows\System32\msvcp140.dll,C:\Windows\System32\vcruntime140.dll,C:\Windows\System32\vcruntime140_1.dll build\windows\x64\runner\Release\
                   Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath "clio-${{ github.ref_name }}-windows-x64.zip"
 
             - name: Upload artifact
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v6
               with:
                   name: clio-${{ matrix.target }}
                   path: "*.zip"
@@ -65,12 +66,42 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/download-artifact@v4
+            - uses: actions/download-artifact@v7
               with:
                   path: artifacts
                   merge-multiple: true
 
-            - uses: softprops/action-gh-release@v2
+            - uses: softprops/action-gh-release@v3
               with:
                   files: artifacts/*
                   generate_release_notes: true
+                  body: |
+                      ### macOS users — first launch
+
+                      The macOS build is **unsigned** (no Apple Developer account yet), so Gatekeeper shows
+                      *"Apple could not verify 'clio' is free of malware that may harm your Mac"* on first open.
+
+                      After unzipping, run this **once** per downloaded copy:
+
+                      ```bash
+                      xattr -cr ~/Downloads/clio.app
+                      ```
+
+                      Then open the app normally — it opens by double-clicking from then on. Prefer not to use the
+                      terminal? Click **Done** on the dialog, then go to **System Settings → Privacy & Security**,
+                      scroll to the bottom, and click **Open Anyway**.
+
+                      ### Windows users — first launch
+
+                      Extract the **entire** zip and keep all files together in one folder — `clio.exe` loads its
+                      DLLs and `data/` folder from beside itself, so don't move the `.exe` out on its own. Then run
+                      `clio.exe`.
+
+                      The exe is unsigned, so SmartScreen may show *"Windows protected your PC"* on first launch —
+                      click **More info**, then **Run anyway**. This only happens once.
+
+                      If the app window is blank, install the **Microsoft Edge WebView2 Runtime** from
+                      https://developer.microsoft.com/microsoft-edge/webview2/ (preinstalled on Windows 11 and most
+                      Windows 10 machines).
+
+                      ---

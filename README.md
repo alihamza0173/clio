@@ -13,6 +13,49 @@ frequently and without notice. **Pull requests are not reviewed or accepted**
 right now. You're welcome to **fork** it for your own use; it's MIT-licensed
 (see [LICENSE](LICENSE)).
 
+## Download
+
+Prebuilt macOS and Windows builds are attached to each release on the
+[**GitHub Releases**](https://github.com/alihamza0173/clio/releases) page. Download the
+`clio-*-macos.zip` or `clio-*-windows-x64.zip` for the latest version, unzip, and run.
+
+### Opening the app on macOS (unsigned build)
+
+The macOS build is **unsigned and not notarized** (there's no Apple Developer account
+yet), so on first launch Gatekeeper blocks it with:
+
+> "Apple could not verify 'clio' is free of malware that may harm your Mac."
+
+The fix is a **one-time** command after unzipping — clear the quarantine attribute, then
+open the app normally:
+
+```bash
+xattr -cr ~/Downloads/clio.app
+```
+
+Adjust the path if you extracted it elsewhere. You only need to do this **once per
+downloaded copy**; after the first launch the app opens by double-clicking like any
+other app.
+
+Prefer not to use the terminal? Click **Done** on the dialog, then go to **System
+Settings → Privacy & Security**, scroll to the bottom, and click **Open Anyway**.
+
+### Running on Windows
+
+The Windows build is a **portable app** — no installer. Extract the entire zip and keep
+all files together in one folder; `clio.exe` loads its DLLs and the `data/` folder from
+beside itself, so don't move the `.exe` out on its own. Run `clio.exe` (optionally pin it
+to Start or the taskbar).
+
+The exe is **unsigned**, so on first launch SmartScreen may show *"Windows protected your
+PC"*. Click **More info**, then **Run anyway** — this only happens once.
+
+Requirements:
+- The `claude` CLI must be on your `PATH` (same as macOS).
+- The **Microsoft Edge WebView2 Runtime** must be installed. It's preinstalled on Windows
+  11 and most Windows 10 machines; if the app window is blank, install it from
+  <https://developer.microsoft.com/microsoft-edge/webview2/>.
+
 ## Features
 
 - **Projects** — add folders as projects; the list is persisted locally.
