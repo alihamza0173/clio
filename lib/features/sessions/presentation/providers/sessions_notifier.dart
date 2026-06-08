@@ -99,8 +99,7 @@ class SessionsNotifier extends _$SessionsNotifier {
   Future<void> markStarted(String sessionId) async {
     final repo = ref.read(sessionRepositoryProvider);
     await MarkSessionStarted(repo)(projectId: projectId, sessionId: sessionId);
-    ref.invalidateSelf();
-    await future;
+    _patch(sessionId, (s) => s.copyWith(claudeStarted: true));
   }
 
   Future<void> rename(String sessionId, String title) async {
@@ -110,8 +109,7 @@ class SessionsNotifier extends _$SessionsNotifier {
       sessionId: sessionId,
       title: title,
     );
-    ref.invalidateSelf();
-    await future;
+    _patch(sessionId, (s) => s.copyWith(title: title));
   }
 
   Future<void> updateResumeId(String sessionId, String resumeId) async {
@@ -121,8 +119,23 @@ class SessionsNotifier extends _$SessionsNotifier {
       sessionId: sessionId,
       resumeId: resumeId,
     );
-    ref.invalidateSelf();
-    await future;
+    _patch(sessionId, (s) => s.copyWith(resumeId: resumeId));
+  }
+
+  void _patch(String sessionId, Session Function(Session) update) {
+    final current = state.value;
+    if (current == null) return;
+    var changed = false;
+    final next = <Session>[];
+    for (final s in current) {
+      if (s.id == sessionId) {
+        next.add(update(s));
+        changed = true;
+      } else {
+        next.add(s);
+      }
+    }
+    if (changed) state = AsyncData(next);
   }
 
   Future<void> remove(String sessionId) async {

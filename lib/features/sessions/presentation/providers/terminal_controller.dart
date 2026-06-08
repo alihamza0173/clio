@@ -23,27 +23,42 @@ part 'terminal_controller.g.dart';
 class TerminalBridge {
   TerminalBridge._(this._controller);
 
+  static const _maxPending = 1 << 20;
+
   final TerminalController _controller;
   void Function(Uint8List bytes)? _outputSink;
-  final List<Uint8List> _pending = [];
+  final BytesBuilder _pending = BytesBuilder(copy: false);
+  Timer? _flushTimer;
 
   set onOutput(void Function(Uint8List bytes)? sink) {
     _outputSink = sink;
-    if (sink != null && _pending.isNotEmpty) {
-      for (final b in _pending) {
-        sink(b);
-      }
-      _pending.clear();
-    }
+    if (sink != null) _scheduleFlush();
   }
 
   void _emit(Uint8List bytes) {
-    final sink = _outputSink;
-    if (sink != null) {
-      sink(bytes);
-    } else {
-      _pending.add(bytes);
+    _pending.add(bytes);
+    if (_pending.length > _maxPending) {
+      final all = _pending.takeBytes();
+      _pending.add(Uint8List.sublistView(all, all.length - _maxPending));
     }
+    _scheduleFlush();
+  }
+
+  void _scheduleFlush() {
+    if (_flushTimer != null || _outputSink == null || _pending.isEmpty) return;
+    _flushTimer = Timer(const Duration(milliseconds: 16), _flush);
+  }
+
+  void _flush() {
+    _flushTimer = null;
+    final sink = _outputSink;
+    if (sink == null || _pending.isEmpty) return;
+    sink(_pending.takeBytes());
+  }
+
+  void _dispose() {
+    _flushTimer?.cancel();
+    _flushTimer = null;
   }
 
   void handleReady(int cols, int rows) => _controller._onReady(rows, cols);
@@ -67,7 +82,9 @@ class TerminalController extends _$TerminalController {
   PtyHandle? _pty;
   bool _starting = false;
   bool _disposed = false;
+  bool _reconciling = false;
   Timer? _reconcileTimer;
+  StreamSubscription<Uint8List>? _outputSub;
   String? _projectPath;
   String? _resumeId;
   String? _currentTitle;
@@ -79,6 +96,8 @@ class TerminalController extends _$TerminalController {
     ref.onDispose(() {
       _disposed = true;
       _reconcileTimer?.cancel();
+      _outputSub?.cancel();
+      _bridge._dispose();
       _pty?.kill();
     });
     return _bridge;
@@ -144,10 +163,11 @@ class TerminalController extends _$TerminalController {
             columns: columns,
           );
       _pty = pty;
-      pty.output.listen((data) {
-        _bridge._emit(data);
-        _scheduleReconcile();
-      });
+      _outputSub = pty.output.listen(_bridge._emit);
+      _reconcileTimer = Timer.periodic(
+        const Duration(seconds: 3),
+        (_) => _reconcile(),
+      );
 
       if (!session.claudeStarted) {
         await ref
@@ -166,18 +186,13 @@ class TerminalController extends _$TerminalController {
 
   Uint8List _bytes(String s) => Uint8List.fromList(utf8.encode(s));
 
-  void _scheduleReconcile() {
-    if (_disposed) return;
-    _reconcileTimer?.cancel();
-    _reconcileTimer = Timer(const Duration(milliseconds: 1500), _reconcile);
-  }
-
   Future<void> _reconcile() async {
-    if (_disposed) return;
+    if (_disposed || _reconciling) return;
     final pty = _pty;
     final projectPath = _projectPath;
     if (pty == null || projectPath == null) return;
 
+    _reconciling = true;
     final service = ref.read(claudeSessionServiceProvider);
     try {
       final info = await service.readSessionByPid(pty.pid);
@@ -206,7 +221,10 @@ class TerminalController extends _$TerminalController {
             .read(sessionsProvider(projectId).notifier)
             .rename(sessionId, title);
       }
-    } catch (_) {}
+    } catch (_) {
+    } finally {
+      _reconciling = false;
+    }
   }
 
   Project? _findProject(List<Project> projects) {
