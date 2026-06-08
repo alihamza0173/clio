@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-06-08
+
+### Fixed
+- **Long-running UI freezes and unresponsive/blank terminals.** Two compounding causes addressed: (1) the per-session reconcile loop no longer re-runs `SessionsNotifier.build()` (and the all-session transcript parse) on every title/resume-id change — `rename`/`updateResumeId`/`markStarted` now patch session state in place; (2) PTY output is coalesced into a single per-frame (~16 ms) write to the webview instead of one base64-encoded `evaluateJavascript` call per chunk, ending the platform-channel flooding that blanked terminals and stalled input.
+
+### Changed
+- `TerminalBridge` buffers PTY output in a single `BytesBuilder`, capped at 1 MB (oldest dropped), flushed once per frame; the flush timer, PTY output subscription, and bridge are cancelled on dispose.
+- `TerminalController` reconciles on a fixed 3 s interval (with a re-entrancy guard) instead of re-arming a 1.5 s timer on every output chunk.
+
 ## [0.1.0] - 2026-06-07
 
 ### Added
@@ -46,5 +55,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `riverpod_generator` / `riverpod_lint` resolve to dev prereleases — the only versions compatible with the `riverpod 3.2.1` runtime; they are build-time only.
 - `riverpod_lint` 3.x registers through `analysis_server_plugin` (no `custom_lint`).
 
-[Unreleased]: https://github.com/alihamza0173/clio/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/alihamza0173/clio/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/alihamza0173/clio/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/alihamza0173/clio/releases/tag/v0.1.0
