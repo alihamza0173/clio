@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.2] - 2026-06-09
 
 ### Added
 - **Word- and line-wise terminal shortcuts.** `terminal_key_encoder.dart` now sends modifier-aware sequences so editing keys behave like a native terminal: Ctrl/Option/Shift with arrows, Home/End, Delete, and PageUp/Down emit standard CSI modifier sequences (e.g. Option+Left = word back), and Ctrl/Option+Backspace delete the previous word. macOS Cmd line-editing matches Ghostty: Cmd+Left = start of line (`^A`), Cmd+Right = end of line (`^E`), Cmd+Delete = delete to start of line (`^U`).
