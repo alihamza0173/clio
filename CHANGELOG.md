@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Blank/black terminal when returning to a project.** Switching projects previously disposed the previous project's `ProjectSessionsScreen`, tearing down its terminal webviews; returning rebuilt an empty webview while `claude` (kept alive) sat idle, leaving a black screen. `ProjectsScreen` now keeps each visited project's sessions mounted in an `IndexedStack` (keyed `project:<id>`) so webviews survive project switches.
+- **Black screen when switching session tabs fast.** Bringing a webview from an offscreen `IndexedStack` branch to the front leaves WKWebView presenting a stale black surface until forced to recomposite. The foreground terminal now forces a recomposite when it becomes visible.
+- **Black screen on claude's "jump to bottom" / redraw after idle.** A one-off redraw after an idle period painted to a surface WKWebView never presented; output now always forces a recomposite (rAF-throttled).
+
+### Changed
+- `ProjectSessionsScreen` takes a `visible` flag, folded into each terminal's `active` so the foreground session re-focuses and triggers a webview recomposite when its project becomes visible.
+- `WebTerminalView` calls `window.clioNudge()` on the inactive→active transition; `bridge.js` exposes `clioNudge` and uses a stronger repaint nudge (body-opacity **plus** a `translateZ` compositing-transform toggle on the terminal element) to more reliably force WKWebView's native layer to re-present. Mitigates upstream flutter_inappwebview macOS issue [#1923](https://github.com/pichillilorenzo/flutter_inappwebview/issues/1923).
+
 ## [0.1.1] - 2026-06-08
 
 ### Fixed
