@@ -38,6 +38,13 @@
     theme: theme
   });
 
+  // Flutter owns the physical keyboard and writes encoded bytes straight to the
+  // pty; xterm must stay render-only. On Windows the InAppWebView (unlike
+  // WKWebView on macOS) gives the textarea real keyboard focus, so without this
+  // every key is sent twice (Flutter + xterm.onData) and a stray Enter
+  // auto-submits a message to claude.
+  term.attachCustomKeyEventHandler(function () { return false; });
+
   var fitAddon = new FitAddon.FitAddon();
   term.loadAddon(fitAddon);
 

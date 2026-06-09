@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2026-06-09
+
+### Added
+- **Shift+Enter inserts a newline.** `terminal_key_encoder.dart` now sends Esc+CR (`\x1b\r`) for Shift+Enter, which claude treats as a line break instead of submitting — matching Ghostty.
+
+### Fixed
+- **Windows: new session auto-submitted a message to claude.** On Windows the `InAppWebView` (WebView2) holds real keyboard focus, unlike WKWebView on macOS, so keystrokes were processed twice (Flutter + xterm.js `onData`) and a stray Enter on session start auto-submitted a message. `bridge.js` now calls `term.attachCustomKeyEventHandler(() => false)` so xterm stays render-only for the physical keyboard on every platform; paste and terminal query responses are unaffected.
+
 ## [0.1.2] - 2026-06-09
 
 ### Added

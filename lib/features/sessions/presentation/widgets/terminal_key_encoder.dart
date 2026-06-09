@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 /// the encoded bytes straight to the pty. `Cmd+C`/`Cmd+V` are handled upstream
 /// for copy/paste; `Cmd` with arrows/backspace emulates macOS line editing
 /// (Ghostty-style: start/end of line, kill-to-start); `Option` (alt) is Meta.
+/// `Shift+Enter` sends Esc+CR so claude inserts a newline instead of submitting.
 List<int>? encodeTerminalKey(KeyEvent event) {
   if (event is KeyUpEvent) return null;
 
@@ -42,7 +43,7 @@ List<int>? encodeTerminalKey(KeyEvent event) {
   switch (key) {
     case LogicalKeyboardKey.enter:
     case LogicalKeyboardKey.numpadEnter:
-      return const [0x0d];
+      return shift ? const [0x1b, 0x0d] : const [0x0d];
     case LogicalKeyboardKey.backspace:
       if (ctrl) return const [0x17];
       if (alt) return const [0x1b, 0x7f];
