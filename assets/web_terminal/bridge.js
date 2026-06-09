@@ -102,6 +102,7 @@
   // Clipboard / drag-drop paste -> respects bracketed-paste mode, fires onData
   window.clioPaste = function (text) { term.paste(text); };
   window.clioFocus = function () { term.focus(); };
+  window.clioNudge = function () { doFit(); };
   window.clioCopy = function () { return term.getSelection(); };
   window.clioSetTheme = function (json) {
     try {

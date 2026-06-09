@@ -31,7 +31,12 @@ class _WebTerminalViewState extends State<WebTerminalView> {
   @override
   void didUpdateWidget(WebTerminalView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.active && !oldWidget.active) _focus.requestFocus();
+    if (widget.active && !oldWidget.active) {
+      _focus.requestFocus();
+      _web?.evaluateJavascript(
+        source: 'window.clioNudge && window.clioNudge()',
+      );
+    }
   }
 
   @override

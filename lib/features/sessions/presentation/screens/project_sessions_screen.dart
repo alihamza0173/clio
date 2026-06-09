@@ -12,9 +12,14 @@ import '../widgets/session_tab_bar.dart';
 import '../widgets/terminal_view.dart';
 
 class ProjectSessionsScreen extends ConsumerStatefulWidget {
-  const ProjectSessionsScreen({super.key, required this.project});
+  const ProjectSessionsScreen({
+    super.key,
+    required this.project,
+    this.visible = true,
+  });
 
   final Project project;
+  final bool visible;
 
   @override
   ConsumerState<ProjectSessionsScreen> createState() =>
@@ -80,7 +85,7 @@ class _ProjectSessionsScreenState extends ConsumerState<ProjectSessionsScreen> {
             key: ValueKey('$projectId:$id'),
             projectId: projectId,
             sessionId: id,
-            active: id == effectiveId,
+            active: widget.visible && id == effectiveId,
           ),
       ],
     );

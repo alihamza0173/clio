@@ -11,15 +11,23 @@ import '../../domain/entities/project.dart';
 import '../providers/projects_notifier.dart';
 import '../widgets/project_tile.dart';
 
-class ProjectsScreen extends ConsumerWidget {
+class ProjectsScreen extends ConsumerStatefulWidget {
   const ProjectsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProjectsScreen> createState() => _ProjectsScreenState();
+}
+
+class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
+  final _mountedProjects = <String>[];
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final projectsAsync = ref.watch(projectsProvider);
     final selectedId = ref.watch(selectedProjectIdProvider);
-    final selected = _selectedProject(projectsAsync.value, selectedId);
+    final projects = projectsAsync.value;
+    final selected = _selectedProject(projects, selectedId);
 
     return Scaffold(
       body: Row(
@@ -78,19 +86,52 @@ class ProjectsScreen extends ConsumerWidget {
             ),
           ),
           const VerticalDivider(width: 0.5, color: AppColors.border),
-          Expanded(
-            child: selected == null
-                ? Center(
-                    child: Text(
-                      l10n.noSessionSelected,
-                      style: AppTypography.label,
-                    ),
-                  )
-                : ProjectSessionsScreen(project: selected),
-          ),
+          Expanded(child: _buildDetail(projects, selected, l10n)),
         ],
       ),
     );
+  }
+
+  Widget _buildDetail(
+    List<Project>? projects,
+    Project? selected,
+    AppLocalizations l10n,
+  ) {
+    if (projects != null) {
+      final ids = projects.map((p) => p.id).toSet();
+      _mountedProjects.removeWhere((id) => !ids.contains(id));
+    }
+    if (selected != null && !_mountedProjects.contains(selected.id)) {
+      _mountedProjects.add(selected.id);
+    }
+
+    if (selected == null || _mountedProjects.isEmpty) {
+      return Center(
+        child: Text(l10n.noSessionSelected, style: AppTypography.label),
+      );
+    }
+
+    return IndexedStack(
+      index: _mountedProjects.indexOf(selected.id),
+      sizing: StackFit.expand,
+      children: [
+        for (final id in _mountedProjects)
+          ProjectSessionsScreen(
+            key: ValueKey('project:$id'),
+            project: _projectById(projects, id),
+            visible: id == selected.id,
+          ),
+      ],
+    );
+  }
+
+  Project _projectById(List<Project>? projects, String id) {
+    if (projects != null) {
+      for (final p in projects) {
+        if (p.id == id) return p;
+      }
+    }
+    return Project(id: id, name: '', path: '', createdAt: DateTime.now());
   }
 
   Future<void> _pickAndAdd(WidgetRef ref) async {
