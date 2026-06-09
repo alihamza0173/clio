@@ -94,10 +94,13 @@
     return bytes;
   }
 
-  // PTY output -> terminal
+  // PTY output -> terminal. Always force a recomposite: a one-off redraw after
+  // an idle period (e.g. claude's "jump to bottom") otherwise paints to a
+  // surface WKWebView never presents, leaving a black screen until a manual
+  // scroll. scheduleNudge is rAF-throttled, so at most one toggle per frame.
   window.clioWrite = function (b64) {
     term.write(b64ToBytes(b64));
-    if (Date.now() < nudgeUntil) scheduleNudge();
+    scheduleNudge();
   };
   // Clipboard / drag-drop paste -> respects bracketed-paste mode, fires onData
   window.clioPaste = function (text) { term.paste(text); };
@@ -133,14 +136,19 @@
   var nudgeQueued = false;
 
   function repaintNudge() {
-    // Some WKWebView platform views present a black surface after a resize until
-    // the compositor is forced to recomposite. A momentary body-opacity toggle
-    // forces a full repaint of the presented bitmap.
+    // Some WKWebView platform views present a black surface (while still
+    // receiving events) until the native compositing layer is forced to
+    // re-present. A body-opacity toggle alone is not always enough, so we also
+    // toggle a compositing transform on the terminal element to force the
+    // CALayer to rebuild and present a fresh frame.
     var b = document.body;
+    var el = document.getElementById('terminal');
     b.style.opacity = '0.999';
+    if (el) el.style.transform = 'translateZ(0)';
     requestAnimationFrame(function () {
       b.style.opacity = '1';
-      try { term.refresh(0, term.rows - 1); } catch (e) {}
+      if (el) el.style.transform = 'none';
+      try { term.refresh(0, term.rows - 1); } catch (e) { }
     });
   }
 
@@ -158,7 +166,7 @@
     if (!el || el.clientWidth < 8 || el.clientHeight < 8) return;
     try {
       fitAddon.fit();
-    } catch (e) {}
+    } catch (e) { }
     // Keep forcing recomposites while Claude repaints (a long/heavy session can
     // take a while to fully redraw after the resize).
     nudgeUntil = Date.now() + 1500;
