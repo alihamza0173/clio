@@ -1,4 +1,8 @@
 PODS:
+  - desktop_drop (0.0.1):
+    - FlutterMacOS
+  - file_selector_macos (0.0.1):
+    - FlutterMacOS
   - flutter_inappwebview_macos (0.0.1):
     - FlutterMacOS
     - OrderedSet (~> 6.0.3)
@@ -6,29 +10,44 @@ PODS:
     - FlutterMacOS
   - FlutterMacOS (1.0.0)
   - OrderedSet (6.0.3)
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
 
 DEPENDENCIES:
+  - desktop_drop (from `Flutter/ephemeral/.symlinks/plugins/desktop_drop/macos`)
+  - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
   - flutter_inappwebview_macos (from `Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos`)
   - flutter_pty (from `Flutter/ephemeral/.symlinks/plugins/flutter_pty/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
+  - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
 
 SPEC REPOS:
   trunk:
     - OrderedSet
 
 EXTERNAL SOURCES:
+  desktop_drop:
+    :path: Flutter/ephemeral/.symlinks/plugins/desktop_drop/macos
+  file_selector_macos:
+    :path: Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos
   flutter_inappwebview_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_inappwebview_macos/macos
   flutter_pty:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_pty/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
+  shared_preferences_foundation:
+    :path: Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin
 
 SPEC CHECKSUMS:
+  desktop_drop: 248706031734554504f939cab1ad4c5fbc9c9c72
+  file_selector_macos: 9e9e068e90ebee155097d00e89ae91edb2374db7
   flutter_inappwebview_macos: c2d68649f9f8f1831bfcd98d73fd6256366d9d1d
   flutter_pty: 1e360feaf8b1a213d2d50da3c076005b8eef1eee
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
+  shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
 
 PODFILE CHECKSUM: 54d867c82ac51cbd61b565781b9fada492027009
 

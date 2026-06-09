@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Word- and line-wise terminal shortcuts.** `terminal_key_encoder.dart` now sends modifier-aware sequences so editing keys behave like a native terminal: Ctrl/Option/Shift with arrows, Home/End, Delete, and PageUp/Down emit standard CSI modifier sequences (e.g. Option+Left = word back), and Ctrl/Option+Backspace delete the previous word. macOS Cmd line-editing matches Ghostty: Cmd+Left = start of line (`^A`), Cmd+Right = end of line (`^E`), Cmd+Delete = delete to start of line (`^U`).
+
 ### Fixed
 - **Blank/black terminal when returning to a project.** Switching projects previously disposed the previous project's `ProjectSessionsScreen`, tearing down its terminal webviews; returning rebuilt an empty webview while `claude` (kept alive) sat idle, leaving a black screen. `ProjectsScreen` now keeps each visited project's sessions mounted in an `IndexedStack` (keyed `project:<id>`) so webviews survive project switches.
 - **Black screen when switching session tabs fast.** Bringing a webview from an offscreen `IndexedStack` branch to the front leaves WKWebView presenting a stale black surface until forced to recomposite. The foreground terminal now forces a recomposite when it becomes visible.
