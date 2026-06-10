@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - 2026-06-10
+
+### Fixed
+- **macOS: new session failed with `execvp: No such file or directory`** (and spammed CoreFoundation "you MUST exec()" warnings). `flutter_pty` exec'd the bare name `claude`, leaving `execvp` to do a `$PATH` search inside the forked child — fragile, and missing `/opt/homebrew/bin` when clio was launched without a full PATH (e.g. from Finder). `ShellEnvService.resolveExecutable()` now resolves `claude` to an absolute path from the login-shell PATH before spawning, so `execvp` execs directly with no PATH search; the immediate exec also stops the fork-without-exec CoreFoundation warnings.
+
+### Changed
+- `resolveExecutable()` also resolves on Windows, searching PATH with `PATHEXT` (preferring `claude.exe`) and returning an absolute path, removing any dependence on PATH being correct at process-launch time. Falls back to the bare name when nothing matches.
+
 ## [0.1.3] - 2026-06-09
 
 ### Added

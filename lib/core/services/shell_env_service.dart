@@ -26,6 +26,23 @@ class ShellEnvService {
     return _cachedPath = current;
   }
 
+  Future<String> resolveExecutable(String name) async {
+    if (name.contains('/') || name.contains(r'\')) return name;
+    final sep = Platform.isWindows ? ';' : ':';
+    final exts = Platform.isWindows
+        ? (Platform.environment['PATHEXT'] ?? '.COM;.EXE;.BAT;.CMD').split(';')
+        : const [''];
+    final dirs = (await loginPath()).split(sep);
+    for (final dir in dirs) {
+      if (dir.isEmpty) continue;
+      for (final ext in exts) {
+        final candidate = '$dir${Platform.pathSeparator}$name$ext';
+        if (await File(candidate).exists()) return candidate;
+      }
+    }
+    return name;
+  }
+
   Future<Map<String, String>> buildEnvironment() async {
     return {
       ...Platform.environment,

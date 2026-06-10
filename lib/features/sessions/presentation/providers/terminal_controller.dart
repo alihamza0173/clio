@@ -144,9 +144,11 @@ class TerminalController extends _$TerminalController {
           ? ['--resume', session.resumeId]
           : ['--session-id', session.id];
 
-      final environment = await ref
-          .read(shellEnvServiceProvider)
-          .buildEnvironment();
+      final shellEnv = ref.read(shellEnvServiceProvider);
+      final executable = await shellEnv.resolveExecutable(
+        AppConstants.claudeExecutable,
+      );
+      final environment = await shellEnv.buildEnvironment();
 
       _projectPath = project.path;
       _resumeId = session.resumeId;
@@ -155,7 +157,7 @@ class TerminalController extends _$TerminalController {
       final pty = ref
           .read(ptyServiceProvider)
           .start(
-            executable: AppConstants.claudeExecutable,
+            executable: executable,
             arguments: args,
             workingDirectory: project.path,
             environment: environment,
