@@ -128,6 +128,24 @@ abstract class AppLocalizations {
   /// **'Remove project'**
   String get removeProject;
 
+  /// No description provided for @hideProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide project'**
+  String get hideProject;
+
+  /// No description provided for @unhideProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Unhide project'**
+  String get unhideProject;
+
+  /// No description provided for @hiddenProjectsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden ({count})'**
+  String hiddenProjectsHeader(int count);
+
   /// No description provided for @removeProjectConfirm.
   ///
   /// In en, this message translates to:

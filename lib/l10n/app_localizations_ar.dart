@@ -24,6 +24,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get removeProject => 'إزالة المشروع';
 
   @override
+  String get hideProject => 'إخفاء المشروع';
+
+  @override
+  String get unhideProject => 'إظهار المشروع';
+
+  @override
+  String hiddenProjectsHeader(int count) {
+    return 'المخفية ($count)';
+  }
+
+  @override
   String removeProjectConfirm(String name) {
     return 'إزالة \"$name\" من كليو؟ سيتم إغلاق جلسات هذا المشروع.';
   }

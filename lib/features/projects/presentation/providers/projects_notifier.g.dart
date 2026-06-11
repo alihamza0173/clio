@@ -80,7 +80,7 @@ final class ProjectsNotifierProvider
   ProjectsNotifier create() => ProjectsNotifier();
 }
 
-String _$projectsNotifierHash() => r'd0615bd735bf40ccb2c03c1b25453ec7530cf6d6';
+String _$projectsNotifierHash() => r'e88084d862a16c5e55112a4f0c1058c264886dfb';
 
 abstract class _$ProjectsNotifier extends $AsyncNotifier<List<Project>> {
   FutureOr<List<Project>> build();
@@ -93,6 +93,59 @@ abstract class _$ProjectsNotifier extends $AsyncNotifier<List<Project>> {
             as $ClassProviderElement<
               AnyNotifier<AsyncValue<List<Project>>, List<Project>>,
               AsyncValue<List<Project>>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
+@ProviderFor(HiddenSectionExpanded)
+final hiddenSectionExpandedProvider = HiddenSectionExpandedProvider._();
+
+final class HiddenSectionExpandedProvider
+    extends $NotifierProvider<HiddenSectionExpanded, bool> {
+  HiddenSectionExpandedProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'hiddenSectionExpandedProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$hiddenSectionExpandedHash();
+
+  @$internal
+  @override
+  HiddenSectionExpanded create() => HiddenSectionExpanded();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$hiddenSectionExpandedHash() =>
+    r'2a0713d2b737405618785cd7ff861decbd46469b';
+
+abstract class _$HiddenSectionExpanded extends $Notifier<bool> {
+  bool build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<bool, bool>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<bool, bool>,
+              bool,
               Object?,
               Object?
             >;

@@ -24,6 +24,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get removeProject => 'Remove project';
 
   @override
+  String get hideProject => 'Hide project';
+
+  @override
+  String get unhideProject => 'Unhide project';
+
+  @override
+  String hiddenProjectsHeader(int count) {
+    return 'Hidden ($count)';
+  }
+
+  @override
   String removeProjectConfirm(String name) {
     return 'Remove \"$name\" from clio? Sessions for this project will be closed.';
   }

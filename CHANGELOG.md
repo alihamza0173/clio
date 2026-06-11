@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Hide / unhide projects without losing sessions.** Each project tile now shows hover-revealed actions (hide, remove — the remove button is no longer always visible) and a right-click context menu. Hidden projects move to a collapsible "HIDDEN (n)" section at the bottom of the sidebar, rendered dimmed; they stay fully openable from there (terminals/sessions keep running, `IndexedStack` still mounts all projects) and can be unhidden anytime. Hiding the selected project keeps it selected and auto-expands the section. Persisted as a backward-compatible `hidden` flag on `Project` (`clio.projects` JSON, defaults to visible); backed by a new `updateProject` repository method and `UpdateProject` usecase.
+
 ## [0.1.5] - 2026-06-11
 
 ### Fixed

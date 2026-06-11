@@ -9,6 +9,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../sessions/presentation/screens/project_sessions_screen.dart';
 import '../../domain/entities/project.dart';
 import '../providers/projects_notifier.dart';
+import '../widgets/hidden_projects_section.dart';
 import '../widgets/project_tile.dart';
 
 class ProjectsScreen extends ConsumerStatefulWidget {
@@ -55,11 +56,21 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                       child: Text('$e', style: AppTypography.label),
                     ),
                     data: (projects) => _ProjectsList(
-                      projects: projects,
+                      projects: [
+                        for (final p in projects)
+                          if (!p.hidden) p,
+                      ],
                       selectedId: selectedId,
                       emptyLabel: l10n.noProjects,
                     ),
                   ),
+                ),
+                HiddenProjectsSection(
+                  projects: [
+                    for (final p in projects ?? const <Project>[])
+                      if (p.hidden) p,
+                  ],
+                  selectedId: selectedId,
                 ),
                 const Divider(height: 0.5),
                 TextButton.icon(

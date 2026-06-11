@@ -19,6 +19,15 @@ class ProjectRepositoryImpl implements ProjectRepository {
   }
 
   @override
+  Future<void> updateProject(Project project) async {
+    final projects = await _local.readProjects();
+    final index = projects.indexWhere((p) => p.id == project.id);
+    if (index == -1) return;
+    projects[index] = ProjectModel.fromEntity(project);
+    await _local.writeProjects(projects);
+  }
+
+  @override
   Future<void> removeProject(String id) async {
     final projects = await _local.readProjects();
     projects.removeWhere((p) => p.id == id);

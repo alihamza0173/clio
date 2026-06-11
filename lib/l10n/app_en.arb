@@ -5,6 +5,12 @@
   "addProject": "Add project",
   "noProjects": "No projects yet. Add a folder to get started.",
   "removeProject": "Remove project",
+  "hideProject": "Hide project",
+  "unhideProject": "Unhide project",
+  "hiddenProjectsHeader": "Hidden ({count})",
+  "@hiddenProjectsHeader": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "removeProjectConfirm": "Remove \"{name}\" from clio? Sessions for this project will be closed.",
   "@removeProjectConfirm": {
     "placeholders": { "name": { "type": "String" } }
