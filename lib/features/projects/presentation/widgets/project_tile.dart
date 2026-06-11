@@ -36,13 +36,15 @@ class _ProjectTileState extends ConsumerState<ProjectTile> {
         onSecondaryTapDown: (details) =>
             _showContextMenu(details.globalPosition, l10n),
         child: Material(
-          color: widget.selected ? AppColors.background : Colors.transparent,
+          color: widget.selected || _hovered
+              ? AppColors.background
+              : Colors.transparent,
           child: InkWell(
             onTap: () => ref
                 .read(selectedProjectIdProvider.notifier)
                 .select(_project.id),
+            hoverColor: Colors.transparent,
             child: Container(
-              padding: const .symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
                 border: BorderDirectional(
                   start: BorderSide(
@@ -53,9 +55,10 @@ class _ProjectTileState extends ConsumerState<ProjectTile> {
                   ),
                 ),
               ),
-              child: Row(
+              child: Stack(
                 children: [
-                  Expanded(
+                  Padding(
+                    padding: const .symmetric(horizontal: 12, vertical: 10),
                     child: Opacity(
                       opacity: _project.hidden ? 0.55 : 1,
                       child: Row(
@@ -99,23 +102,51 @@ class _ProjectTileState extends ConsumerState<ProjectTile> {
                       ),
                     ),
                   ),
-                  if (_hovered) ...[
-                    _ActionIcon(
-                      icon: _project.hidden
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined,
-                      tooltip: _project.hidden
-                          ? l10n.unhideProject
-                          : l10n.hideProject,
-                      onPressed: () => _setHidden(!_project.hidden),
+                  if (_hovered)
+                    PositionedDirectional(
+                      top: 0,
+                      bottom: 0,
+                      end: 0,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: AlignmentDirectional.centerStart,
+                            end: AlignmentDirectional.centerEnd,
+                            colors: [
+                              AppColors.background.withValues(alpha: 0),
+                              AppColors.background,
+                              AppColors.background,
+                            ],
+                            stops: const [0, 0.35, 1],
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsetsDirectional.only(
+                            start: 20,
+                            end: 6,
+                          ),
+                          child: Row(
+                            mainAxisSize: .min,
+                            children: [
+                              _ActionIcon(
+                                icon: _project.hidden
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                                tooltip: _project.hidden
+                                    ? l10n.unhideProject
+                                    : l10n.hideProject,
+                                onPressed: () => _setHidden(!_project.hidden),
+                              ),
+                              _ActionIcon(
+                                icon: Icons.close,
+                                tooltip: l10n.removeProject,
+                                onPressed: () => _confirmRemove(l10n),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                    _ActionIcon(
-                      icon: Icons.close,
-                      tooltip: l10n.removeProject,
-                      onPressed: () => _confirmRemove(l10n),
-                    ),
-                  ] else
-                    const SizedBox(width: 56, height: 24),
                 ],
               ),
             ),
