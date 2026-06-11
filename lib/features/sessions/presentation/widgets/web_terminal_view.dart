@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
+import '../../../../core/services/native_focus_service.dart';
 import '../providers/terminal_controller.dart';
 import 'terminal_key_encoder.dart';
 
@@ -28,11 +29,24 @@ class _WebTerminalViewState extends State<WebTerminalView> {
   InAppWebViewController? _web;
   final _focus = FocusNode(debugLabel: 'terminal');
 
+  void _grabKeyboard() {
+    if (!mounted || !widget.active) return;
+    _focus.requestFocus();
+    NativeFocusService.reclaimKeyboard();
+  }
+
+  void _grabKeyboardSettling() {
+    _grabKeyboard();
+    for (final ms in const [120, 350, 700]) {
+      Future.delayed(Duration(milliseconds: ms), _grabKeyboard);
+    }
+  }
+
   @override
   void didUpdateWidget(WebTerminalView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.active && !oldWidget.active) {
-      _focus.requestFocus();
+      _grabKeyboard();
       _web?.evaluateJavascript(
         source: 'window.clioNudge && window.clioNudge()',
       );
@@ -55,6 +69,7 @@ class _WebTerminalViewState extends State<WebTerminalView> {
           (msg['cols'] as num).toInt(),
           (msg['rows'] as num).toInt(),
         );
+        _grabKeyboardSettling();
       case 'resize':
         widget.bridge.handleResize(
           (msg['cols'] as num).toInt(),
@@ -103,7 +118,7 @@ class _WebTerminalViewState extends State<WebTerminalView> {
   @override
   Widget build(BuildContext context) {
     return Listener(
-      onPointerDown: (_) => _focus.requestFocus(),
+      onPointerDown: (_) => _grabKeyboard(),
       child: Focus(
         focusNode: _focus,
         autofocus: widget.active,
@@ -134,7 +149,7 @@ class _WebTerminalViewState extends State<WebTerminalView> {
             controller.evaluateJavascript(
               source: 'window.clioFocus && window.clioFocus()',
             );
-            _focus.requestFocus();
+            _grabKeyboardSettling();
           },
         ),
       ),

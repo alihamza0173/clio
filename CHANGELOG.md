@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2026-06-11
+
+### Fixed
+- **macOS: terminal stopped accepting keyboard input after idle, and new sessions ignored input until a tab switch.** The terminal is a real `WKWebView` NSView (flutter_inappwebview), but the app relies on the Flutter view owning the physical keyboard. When the window lost and regained key status (app switch, display sleep, Mission Control), or when a freshly-loaded webview grabbed first responder, macOS routed `keyDown` to the webview, which silently dropped it — so typing was dead even though clicking, copying, and tab-switching still worked. `_focus.requestFocus()` only set Flutter-internal focus and could not reclaim the native first responder.
+
+### Changed
+- `MainFlutterWindow` now reclaims first responder for the FlutterView on every window `becomeKey`, and exposes a `clio/native_focus` method channel (`NativeFocusService.reclaimKeyboard()`) so Dart can force keyboard ownership back to Flutter. `WebTerminalView` reclaims on pointer-down, on the inactive→active transition, and — with short settling retries (120/350/700 ms) — after the webview loads and reports `ready`, winning the race against the webview's late first-responder grab so new sessions accept input on first open.
+
 ## [0.1.4] - 2026-06-10
 
 ### Fixed
