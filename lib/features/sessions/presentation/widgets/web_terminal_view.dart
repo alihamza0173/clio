@@ -76,7 +76,7 @@ class _WebTerminalViewState extends State<WebTerminalView> {
           (msg['rows'] as num).toInt(),
         );
       case 'data':
-        widget.bridge.handleInput(utf8.encode(msg['data'] as String));
+        widget.bridge.handleReply(utf8.encode(msg['data'] as String));
     }
   }
 
