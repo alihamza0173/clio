@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -96,6 +97,7 @@ class TerminalController extends _$TerminalController {
   String? _resumeId;
   String? _currentTitle;
   SessionStatusNotifier? _status;
+  Directory? _hookSettingsDir;
   late final TerminalBridge _bridge;
 
   @override
@@ -107,6 +109,7 @@ class TerminalController extends _$TerminalController {
       _outputSub?.cancel();
       _bridge._dispose();
       _pty?.kill();
+      _hookSettingsDir?.delete(recursive: true).ignore();
     });
     return _bridge;
   }
@@ -150,17 +153,19 @@ class TerminalController extends _$TerminalController {
                 projectPath: project.path,
                 sessionId: session.resumeId,
               );
-      String? hookSettings;
+      String? settingsArg;
       try {
-        hookSettings = await ref
+        final path = await ref
             .read(claudeHookServerProvider)
-            .settingsJson(projectId: projectId, sessionId: sessionId);
+            .settingsFile(projectId: projectId, sessionId: sessionId);
+        _hookSettingsDir = File(path).parent;
+        settingsArg = Platform.isWindows ? '"$path"' : path;
       } catch (_) {}
       final args = [
         ...(resumable
             ? ['--resume', session.resumeId]
             : ['--session-id', session.id]),
-        if (hookSettings != null) ...['--settings', hookSettings],
+        if (settingsArg != null) ...['--settings', settingsArg],
       ];
 
       final shellEnv = ref.read(shellEnvServiceProvider);

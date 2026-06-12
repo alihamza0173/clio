@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-06-12
+
+### Fixed
+- **Windows: new session failed with `Error: Invalid JSON provided to --settings`.** The busy-indicator hooks were passed as an inline JSON string to `claude --settings`; on Windows `flutter_pty` builds the command line with no quoting, so `CreateProcessW`/Node argv parsing consumed the `"` characters in the JSON and claude received malformed settings. The hook config is now written to a temp file and passed as `--settings <path>` (`ClaudeHookServer.settingsFile()`), with the path wrapped in quotes on Windows to survive spaces. The temp dir is cleaned up when the session is disposed. macOS/Linux load the same settings, now from a file.
+
 ## [0.2.0] - 2026-06-12
 
 ### Added

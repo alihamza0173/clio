@@ -101,6 +101,17 @@ class ClaudeHookServer {
     });
   }
 
+  Future<String> settingsFile({
+    required String projectId,
+    required String sessionId,
+  }) async {
+    final json = await settingsJson(projectId: projectId, sessionId: sessionId);
+    final dir = await Directory.systemTemp.createTemp('clio_hooks_');
+    final file = File('${dir.path}${Platform.pathSeparator}settings.json');
+    await file.writeAsString(json);
+    return file.path;
+  }
+
   Future<void> dispose() async {
     await _server?.close(force: true);
     await _events.close();
