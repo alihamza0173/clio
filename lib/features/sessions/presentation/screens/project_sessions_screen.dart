@@ -38,7 +38,7 @@ class _ProjectSessionsScreenState extends ConsumerState<ProjectSessionsScreen> {
 
     return Column(
       children: [
-        SessionTabBar(projectId: project.id),
+        SessionTabBar(projectId: project.id, visible: widget.visible),
         const Divider(height: 0.5, color: AppColors.border),
         Expanded(
           child: sessionsAsync.when(

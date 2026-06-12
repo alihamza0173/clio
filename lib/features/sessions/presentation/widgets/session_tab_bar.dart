@@ -10,9 +10,14 @@ import '../providers/terminal_controller.dart';
 import 'new_session_button.dart';
 
 class SessionTabBar extends ConsumerWidget {
-  const SessionTabBar({super.key, required this.projectId});
+  const SessionTabBar({
+    super.key,
+    required this.projectId,
+    this.visible = true,
+  });
 
   final String projectId;
+  final bool visible;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,19 +32,23 @@ class SessionTabBar extends ConsumerWidget {
       child: Row(
         children: [
           Expanded(
-            child: ListView(
+            child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              children: [
-                for (final session in sessions)
-                  _SessionTab(
-                    session: session,
-                    active: session.id == effectiveId,
-                    onSelect: () => ref
-                        .read(activeSessionIdProvider(projectId).notifier)
-                        .select(session.id),
-                    onClose: () => _close(ref, session.id),
-                  ),
-              ],
+              child: Row(
+                crossAxisAlignment: .stretch,
+                children: [
+                  for (final session in sessions)
+                    _SessionTab(
+                      session: session,
+                      active: session.id == effectiveId,
+                      visible: visible,
+                      onSelect: () => ref
+                          .read(activeSessionIdProvider(projectId).notifier)
+                          .select(session.id),
+                      onClose: () => _close(ref, session.id),
+                    ),
+                ],
+              ),
             ),
           ),
           NewSessionButton(projectId: projectId),
@@ -65,26 +74,64 @@ class SessionTabBar extends ConsumerWidget {
   }
 }
 
-class _SessionTab extends ConsumerWidget {
+class _SessionTab extends ConsumerStatefulWidget {
   const _SessionTab({
     required this.session,
     required this.active,
+    required this.visible,
     required this.onSelect,
     required this.onClose,
   });
 
   final Session session;
   final bool active;
+  final bool visible;
   final VoidCallback onSelect;
   final VoidCallback onClose;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_SessionTab> createState() => _SessionTabState();
+}
+
+class _SessionTabState extends ConsumerState<_SessionTab> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.active && widget.visible) _scheduleReveal();
+  }
+
+  @override
+  void didUpdateWidget(_SessionTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.active &&
+        widget.visible &&
+        (!oldWidget.active || !oldWidget.visible)) {
+      _scheduleReveal();
+    }
+  }
+
+  void _scheduleReveal() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Scrollable.ensureVisible(
+        context,
+        alignment: 0.5,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
+  bool get active => widget.active;
+
+  @override
+  Widget build(BuildContext context) {
+    final session = widget.session;
     final status = ref.watch(
       sessionStatusProvider(session.projectId, session.id),
     );
     return GestureDetector(
-      onTap: onSelect,
+      onTap: widget.onSelect,
       child: Container(
         decoration: BoxDecoration(
           color: active ? AppColors.background : Colors.transparent,
@@ -111,7 +158,7 @@ class _SessionTab extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   GestureDetector(
-                    onTap: onClose,
+                    onTap: widget.onClose,
                     child: const Icon(
                       Icons.close,
                       size: 12,
