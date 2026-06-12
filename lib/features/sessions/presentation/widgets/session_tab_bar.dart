@@ -1,9 +1,13 @@
+import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../domain/entities/session.dart';
+import '../providers/session_status.dart';
 import '../providers/sessions_notifier.dart';
 import '../providers/terminal_controller.dart';
 import 'new_session_button.dart';
@@ -16,8 +20,7 @@ class SessionTabBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sessions =
-        ref.watch(sessionsProvider(projectId)).value ??
-            const <Session>[];
+        ref.watch(sessionsProvider(projectId)).value ?? const <Session>[];
     final activeId = ref.watch(activeSessionIdProvider(projectId));
     final effectiveId = _effectiveId(sessions, activeId);
 
@@ -57,6 +60,7 @@ class SessionTabBar extends ConsumerWidget {
 
   Future<void> _close(WidgetRef ref, String sessionId) async {
     ref.invalidate(terminalControllerProvider(projectId, sessionId));
+    ref.invalidate(sessionStatusProvider(projectId, sessionId));
     if (ref.read(activeSessionIdProvider(projectId)) == sessionId) {
       ref.read(activeSessionIdProvider(projectId).notifier).select(null);
     }
@@ -64,7 +68,7 @@ class SessionTabBar extends ConsumerWidget {
   }
 }
 
-class _SessionTab extends StatelessWidget {
+class _SessionTab extends ConsumerWidget {
   const _SessionTab({
     required this.session,
     required this.active,
@@ -78,7 +82,10 @@ class _SessionTab extends StatelessWidget {
   final VoidCallback onClose;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final status = ref.watch(
+      sessionStatusProvider(session.projectId, session.id),
+    );
     return GestureDetector(
       onTap: onSelect,
       child: Container(
@@ -95,6 +102,8 @@ class _SessionTab extends StatelessWidget {
         ),
         child: Row(
           children: [
+            SizedBox.square(dimension: 12, child: _indicator(status)),
+            const SizedBox(width: 6),
             Text(
               session.title,
               style: AppTypography.tab.copyWith(
@@ -104,12 +113,39 @@ class _SessionTab extends StatelessWidget {
             const SizedBox(width: 8),
             GestureDetector(
               onTap: onClose,
-              child: const Icon(Icons.close,
-                  size: 12, color: AppColors.textSecondary),
+              child: const Icon(
+                Icons.close,
+                size: 12,
+                color: AppColors.textSecondary,
+              ),
             ),
           ],
         ),
       ),
     );
   }
+
+  Widget? _indicator(SessionStatus status) => switch (status) {
+    SessionStatus.busy =>
+      Platform.isMacOS
+          ? const CupertinoActivityIndicator(
+              radius: 5,
+              color: AppColors.textSecondary,
+            )
+          : const CircularProgressIndicator(
+              strokeWidth: 1.5,
+              constraints: BoxConstraints.tightFor(width: 12, height: 12),
+            ),
+    SessionStatus.needsAttention => Center(
+      child: Container(
+        width: 8,
+        height: 8,
+        decoration: const BoxDecoration(
+          color: AppColors.warning,
+          shape: .circle,
+        ),
+      ),
+    ),
+    SessionStatus.idle => null,
+  };
 }

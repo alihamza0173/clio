@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../services/claude_hook_server.dart';
 import '../services/claude_session_service.dart';
 import '../services/process_service.dart';
 import '../services/pty_service.dart';
@@ -35,3 +36,9 @@ final ptyServiceProvider = Provider<PtyService>(
 final claudeSessionServiceProvider = Provider<ClaudeSessionService>(
   (ref) => const ClaudeSessionService(),
 );
+
+final claudeHookServerProvider = Provider<ClaudeHookServer>((ref) {
+  final server = ClaudeHookServer();
+  ref.onDispose(server.dispose);
+  return server;
+});

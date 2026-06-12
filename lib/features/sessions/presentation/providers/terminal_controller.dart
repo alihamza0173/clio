@@ -10,6 +10,7 @@ import '../../../../core/services/pty_service.dart';
 import '../../../projects/domain/entities/project.dart';
 import '../../../projects/presentation/providers/projects_notifier.dart';
 import '../../domain/entities/session.dart';
+import 'session_status.dart';
 import 'sessions_notifier.dart';
 
 part 'terminal_controller.g.dart';
@@ -88,6 +89,7 @@ class TerminalController extends _$TerminalController {
   String? _projectPath;
   String? _resumeId;
   String? _currentTitle;
+  SessionStatusNotifier? _status;
   late final TerminalBridge _bridge;
 
   @override
@@ -112,7 +114,9 @@ class TerminalController extends _$TerminalController {
   }
 
   void _write(List<int> bytes) {
-    if (bytes.isNotEmpty) _pty?.write(Uint8List.fromList(bytes));
+    if (bytes.isEmpty) return;
+    _status?.noteUserInput(bytes);
+    _pty?.write(Uint8List.fromList(bytes));
   }
 
   Future<void> _launch({required int rows, required int columns}) async {
@@ -140,9 +144,18 @@ class TerminalController extends _$TerminalController {
                 projectPath: project.path,
                 sessionId: session.resumeId,
               );
-      final args = resumable
-          ? ['--resume', session.resumeId]
-          : ['--session-id', session.id];
+      String? hookSettings;
+      try {
+        hookSettings = await ref
+            .read(claudeHookServerProvider)
+            .settingsJson(projectId: projectId, sessionId: sessionId);
+      } catch (_) {}
+      final args = [
+        ...(resumable
+            ? ['--resume', session.resumeId]
+            : ['--session-id', session.id]),
+        if (hookSettings != null) ...['--settings', hookSettings],
+      ];
 
       final shellEnv = ref.read(shellEnvServiceProvider);
       final executable = await shellEnv.resolveExecutable(
@@ -165,7 +178,17 @@ class TerminalController extends _$TerminalController {
             columns: columns,
           );
       _pty = pty;
-      _outputSub = pty.output.listen(_bridge._emit);
+      final status = ref.read(
+        sessionStatusProvider(projectId, sessionId).notifier,
+      );
+      _status = status;
+      _outputSub = pty.output.listen((bytes) {
+        status.notePtyOutput();
+        _bridge._emit(bytes);
+      });
+      pty.exitCode.then((_) {
+        if (!_disposed) status.reset();
+      });
       _reconcileTimer = Timer.periodic(
         const Duration(seconds: 3),
         (_) => _reconcile(),

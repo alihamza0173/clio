@@ -15,4 +15,5 @@ abstract final class AppColors {
 
   static const Color accentGreen = Color(0xFF7EE787);
   static const Color accentOrange = Color(0xFFF78166);
+  static const Color warning = Color(0xFFD29922);
 }
