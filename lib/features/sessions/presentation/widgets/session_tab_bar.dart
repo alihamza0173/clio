@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -89,35 +86,47 @@ class _SessionTab extends ConsumerWidget {
     return GestureDetector(
       onTap: onSelect,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
           color: active ? AppColors.background : Colors.transparent,
-          border: Border(
-            bottom: BorderSide(
-              color: active ? AppColors.primary : Colors.transparent,
-              width: 2,
-            ),
-            right: const BorderSide(color: AppColors.border, width: 0.5),
+          border: const Border(
+            right: BorderSide(color: AppColors.border, width: 0.5),
           ),
         ),
-        child: Row(
+        child: Stack(
+          alignment: .center,
           children: [
-            SizedBox.square(dimension: 12, child: _indicator(status)),
-            const SizedBox(width: 6),
-            Text(
-              session.title,
-              style: AppTypography.tab.copyWith(
-                color: active ? AppColors.textPrimary : AppColors.textSecondary,
+            Padding(
+              padding: const .symmetric(horizontal: 14),
+              child: Row(
+                children: [
+                  SizedBox.square(dimension: 12, child: _indicator(status)),
+                  const SizedBox(width: 6),
+                  Text(
+                    session.title,
+                    style: AppTypography.tab.copyWith(
+                      color: active
+                          ? AppColors.textPrimary
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: onClose,
+                    child: const Icon(
+                      Icons.close,
+                      size: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 8),
-            GestureDetector(
-              onTap: onClose,
-              child: const Icon(
-                Icons.close,
-                size: 12,
-                color: AppColors.textSecondary,
-              ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: 2,
+              child: _underline(status),
             ),
           ],
         ),
@@ -125,17 +134,22 @@ class _SessionTab extends ConsumerWidget {
     );
   }
 
+  Widget _underline(SessionStatus status) => switch (status) {
+    SessionStatus.busy => LinearProgressIndicator(
+      minHeight: 2,
+      color: AppColors.primary,
+      backgroundColor: active
+          ? AppColors.primary.withValues(alpha: 0.35)
+          : Colors.transparent,
+    ),
+    SessionStatus.needsAttention => const ColoredBox(color: AppColors.warning),
+    SessionStatus.idle =>
+      active
+          ? const ColoredBox(color: AppColors.primary)
+          : const SizedBox.shrink(),
+  };
+
   Widget? _indicator(SessionStatus status) => switch (status) {
-    SessionStatus.busy =>
-      Platform.isMacOS
-          ? const CupertinoActivityIndicator(
-              radius: 5,
-              color: AppColors.textSecondary,
-            )
-          : const CircularProgressIndicator(
-              strokeWidth: 1.5,
-              constraints: BoxConstraints.tightFor(width: 12, height: 12),
-            ),
     SessionStatus.needsAttention => Center(
       child: Container(
         width: 8,
@@ -146,6 +160,6 @@ class _SessionTab extends ConsumerWidget {
         ),
       ),
     ),
-    SessionStatus.idle => null,
+    SessionStatus.busy || SessionStatus.idle => null,
   };
 }
