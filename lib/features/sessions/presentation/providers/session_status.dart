@@ -4,10 +4,21 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/providers/core_providers.dart';
 import '../../../../core/services/claude_hook_server.dart';
+import 'sessions_notifier.dart';
 
 part 'session_status.g.dart';
 
 enum SessionStatus { idle, busy, needsAttention }
+
+@riverpod
+bool projectNeedsAttention(Ref ref, String projectId) {
+  final sessions = ref.watch(sessionsProvider(projectId)).value ?? const [];
+  return sessions.any(
+    (s) =>
+        ref.watch(sessionStatusProvider(projectId, s.id)) ==
+        SessionStatus.needsAttention,
+  );
+}
 
 /// Live activity state for one session's `claude` turn, driven by injected
 /// Claude Code hooks (authoritative). `Stop` never fires when the user
@@ -34,7 +45,7 @@ class SessionStatusNotifier extends _$SessionStatusNotifier {
   void _onHook(ClaudeHookEvent e) {
     if (e.projectId != projectId || e.sessionId != sessionId) return;
     switch (e.event) {
-      case 'UserPromptSubmit':
+      case 'UserPromptSubmit' || 'PostToolUse':
         _setBusy();
       case 'Stop' || 'StopFailure' || 'SessionEnd':
         _setIdle();
@@ -50,14 +61,14 @@ class SessionStatusNotifier extends _$SessionStatusNotifier {
 
   void notePtyOutput() => _lastOutputAt = DateTime.now();
 
+  /// Only a bare Esc/Ctrl+C demotes (interrupt). Other keystrokes are
+  /// deliberately ignored: answering one question of a multi-question prompt
+  /// must not clear needsAttention — `PostToolUse` fires once the prompt is
+  /// fully resolved and the tool actually ran.
   void noteUserInput(List<int> bytes) {
     final interrupt =
         bytes.length == 1 && (bytes[0] == 0x1b || bytes[0] == 0x03);
-    if (interrupt) {
-      if (state != SessionStatus.idle) _setIdle();
-    } else if (state == SessionStatus.needsAttention) {
-      _setBusy();
-    }
+    if (interrupt && state != SessionStatus.idle) _setIdle();
   }
 
   void reset() => _setIdle();

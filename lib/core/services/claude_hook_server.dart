@@ -83,6 +83,7 @@ class ClaudeHookServer {
       'allowedHttpHookUrls': ['http://127.0.0.1:$port/*'],
       'hooks': {
         'UserPromptSubmit': plain(),
+        'PostToolUse': plain(),
         'Stop': plain(),
         'StopFailure': plain(),
         'SessionEnd': plain(),

@@ -8,6 +8,7 @@ import 'package:clio/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../sessions/presentation/providers/session_status.dart';
 import '../../domain/entities/project.dart';
 import '../providers/projects_notifier.dart';
 
@@ -29,6 +30,9 @@ class _ProjectTileState extends ConsumerState<ProjectTile> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final needsAttention = ref.watch(
+      projectNeedsAttentionProvider(_project.id),
+    );
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
@@ -48,7 +52,9 @@ class _ProjectTileState extends ConsumerState<ProjectTile> {
               decoration: BoxDecoration(
                 border: BorderDirectional(
                   start: BorderSide(
-                    color: widget.selected
+                    color: needsAttention
+                        ? AppColors.warning
+                        : widget.selected
                         ? AppColors.primary
                         : Colors.transparent,
                     width: 2,

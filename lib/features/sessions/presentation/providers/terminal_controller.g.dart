@@ -92,7 +92,7 @@ final class TerminalControllerProvider
 }
 
 String _$terminalControllerHash() =>
-    r'6b74eba0b5ae40c66ad614d5849c809efb455e67';
+    r'08e29be9ec314f2e01cf473a14b1b4815d4c50e0';
 
 /// Owns the [PtyHandle] + [TerminalBridge] lifecycle for a single session.
 ///
