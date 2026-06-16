@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- **Dropping an image into one session pasted its path into every session.** All session terminals stay mounted together in an `IndexedStack`, and each `SessionTerminalView` wraps its terminal in its own `desktop_drop` `DropTarget`; on macOS the native drop event reached every mounted `DropTarget` — including the off-stage ones — so each session's `onDragDone` fired and wrote the path to its own PTY. The handler now early-returns unless the view is `active`, so only the focused session receives the dropped path.
+
 ## [0.2.1] - 2026-06-12
 
 ### Fixed

@@ -27,6 +27,7 @@ class SessionTerminalView extends ConsumerWidget {
       color: AppColors.background,
       child: DropTarget(
         onDragDone: (detail) {
+          if (!active) return;
           final paths = <String>[];
           for (final file in detail.files) {
             final path = file.path;
