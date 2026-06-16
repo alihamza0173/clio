@@ -5,6 +5,7 @@ import 'package:clio/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../sessions/presentation/providers/session_status.dart';
 import '../../domain/entities/project.dart';
 import '../providers/projects_notifier.dart';
 import 'project_tile.dart';
@@ -24,6 +25,9 @@ class HiddenProjectsSection extends ConsumerWidget {
     if (projects.isEmpty) return const SizedBox.shrink();
     final l10n = AppLocalizations.of(context);
     final expanded = ref.watch(hiddenSectionExpandedProvider);
+    final needsAttention = projects.any(
+      (p) => ref.watch(projectNeedsAttentionProvider(p.id)),
+    );
 
     return DecoratedBox(
       decoration: const BoxDecoration(
@@ -35,8 +39,18 @@ class HiddenProjectsSection extends ConsumerWidget {
           InkWell(
             onTap: () =>
                 ref.read(hiddenSectionExpandedProvider.notifier).toggle(),
-            child: Padding(
-              padding: const .symmetric(horizontal: 12, vertical: 8),
+            child: Container(
+              decoration: BoxDecoration(
+                border: BorderDirectional(
+                  start: BorderSide(
+                    color: needsAttention
+                        ? AppColors.warning
+                        : Colors.transparent,
+                    width: 2,
+                  ),
+                ),
+              ),
+              padding: const .fromLTRB(10, 8, 12, 8),
               child: Row(
                 children: [
                   AnimatedRotation(

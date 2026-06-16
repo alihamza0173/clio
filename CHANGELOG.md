@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **The collapsed "HIDDEN (n)" sidebar section now turns amber when a hidden project needs attention.** A hidden project's tile already showed the amber start border on a pending permission prompt, but that was invisible while the section was collapsed. The section header now carries the same amber start border whenever any hidden project has a session waiting on a permission prompt (`projectNeedsAttentionProvider`), surfacing the state without expanding.
+
 ### Fixed
 - **Dropping an image into one session pasted its path into every session.** All session terminals stay mounted together in an `IndexedStack`, and each `SessionTerminalView` wraps its terminal in its own `desktop_drop` `DropTarget`; on macOS the native drop event reached every mounted `DropTarget` — including the off-stage ones — so each session's `onDragDone` fired and wrote the path to its own PTY. The handler now early-returns unless the view is `active`, so only the focused session receives the dropped path.
 
