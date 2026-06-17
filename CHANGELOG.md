@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.2] - 2026-06-17
 
 ### Changed
 - **The collapsed "HIDDEN (n)" sidebar section now turns amber when a hidden project needs attention.** A hidden project's tile already showed the amber start border on a pending permission prompt, but that was invisible while the section was collapsed. The section header now carries the same amber start border whenever any hidden project has a session waiting on a permission prompt (`projectNeedsAttentionProvider`), surfacing the state without expanding.
