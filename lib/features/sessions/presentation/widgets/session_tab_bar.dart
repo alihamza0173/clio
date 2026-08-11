@@ -8,6 +8,7 @@ import '../providers/session_status.dart';
 import '../providers/sessions_notifier.dart';
 import '../providers/terminal_controller.dart';
 import 'new_session_button.dart';
+import 'resume_chat_button.dart';
 
 class SessionTabBar extends ConsumerWidget {
   const SessionTabBar({
@@ -52,6 +53,7 @@ class SessionTabBar extends ConsumerWidget {
             ),
           ),
           NewSessionButton(projectId: projectId),
+          ResumeChatButton(projectId: projectId),
         ],
       ),
     );
