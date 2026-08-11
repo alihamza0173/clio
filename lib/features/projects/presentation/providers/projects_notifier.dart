@@ -28,7 +28,12 @@ class ProjectsNotifier extends _$ProjectsNotifier {
     return GetProjects(repo)();
   }
 
-  Future<void> addProjectByPath(String path) async {
+  /// Adds [path], or returns the existing project when that folder is already
+  /// tracked, so picking a suggestion twice can't create a duplicate.
+  Future<Project> addProjectByPath(String path) async {
+    for (final project in await future) {
+      if (project.path == path) return project;
+    }
     final repo = ref.read(projectRepositoryProvider);
     final uuid = ref.read(uuidServiceProvider);
     final project = Project(
@@ -40,6 +45,7 @@ class ProjectsNotifier extends _$ProjectsNotifier {
     await AddProject(repo)(project);
     ref.invalidateSelf();
     await future;
+    return project;
   }
 
   Future<void> removeProject(String id) async {

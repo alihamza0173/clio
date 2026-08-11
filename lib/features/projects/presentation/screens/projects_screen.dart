@@ -1,4 +1,3 @@
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,7 +7,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../sessions/presentation/screens/project_sessions_screen.dart';
 import '../../domain/entities/project.dart';
+import '../providers/claude_project_suggestions.dart';
 import '../providers/projects_notifier.dart';
+import '../widgets/add_project_dialog.dart';
 import '../widgets/hidden_projects_section.dart';
 import '../widgets/project_tile.dart';
 
@@ -74,7 +75,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                 ),
                 const Divider(height: 0.5),
                 TextButton.icon(
-                  onPressed: () => _pickAndAdd(ref),
+                  onPressed: _pickAndAdd,
                   icon: const Icon(
                     Icons.add,
                     size: 16,
@@ -145,11 +146,14 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
     return Project(id: id, name: '', path: '', createdAt: DateTime.now());
   }
 
-  Future<void> _pickAndAdd(WidgetRef ref) async {
-    final path = await getDirectoryPath();
-    if (path == null) return;
-    final notifier = ref.read(projectsProvider.notifier);
-    await notifier.addProjectByPath(path);
+  Future<void> _pickAndAdd() async {
+    final path = await AddProjectDialog.show(context);
+    if (path == null || !mounted) return;
+    final project = await ref
+        .read(projectsProvider.notifier)
+        .addProjectByPath(path);
+    ref.read(selectedProjectIdProvider.notifier).select(project.id);
+    ref.invalidate(claudeProjectSuggestionsProvider);
   }
 
   Project? _selectedProject(List<Project>? projects, String? selectedId) {
