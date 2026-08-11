@@ -111,7 +111,11 @@ void main() {
         return;
       }
       for (final project in projects) {
-        expect(project.path, startsWith('/'));
+        expect(
+          project.path,
+          Directory(project.path).absolute.path,
+          reason: 'recovered paths must be absolute on every platform',
+        );
         expect(Directory(project.path).existsSync(), isTrue);
         expect(project.name, isNot(contains('/')));
         expect(project.chatCount, greaterThan(0));

@@ -47,8 +47,7 @@ class ClaudeChatSummary {
 class ClaudeSessionService {
   const ClaudeSessionService();
 
-  static final RegExp _cwdPattern = RegExp(r'"cwd":"([^"]+)"');
-  static const int _headBytes = 65536;
+  static const int _headBytes = 262144;
   static const int _pathProbeLimit = 3;
   static const int _concurrency = 8;
   static const int _previewLength = 120;
@@ -178,6 +177,9 @@ class ClaudeSessionService {
     return null;
   }
 
+  /// The `cwd` must be JSON-decoded, not pattern-matched out of the raw text:
+  /// on Windows the recorded path is escaped (`"C:\\Users\\me"`), and a
+  /// folder name may legally contain a quote on Linux.
   Future<String?> _readCwd(File file) async {
     try {
       final bytes = <int>[];
@@ -185,10 +187,13 @@ class ClaudeSessionService {
         bytes.addAll(chunk);
       }
       final head = utf8.decode(bytes, allowMalformed: true);
-      return _cwdPattern.firstMatch(head)?.group(1);
-    } catch (_) {
-      return null;
-    }
+      for (final line in const LineSplitter().convert(head)) {
+        if (!line.contains('"cwd"')) continue;
+        final cwd = _decodeLine(line)?['cwd'];
+        if (cwd is String && cwd.isNotEmpty) return cwd;
+      }
+    } catch (_) {}
+    return null;
   }
 
   Future<ClaudeChatSummary?> _summarizeTranscript(
