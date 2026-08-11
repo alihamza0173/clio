@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-08-11
+
+### Added
+- **"Add project" now leads with the folders you have already run claude in.** Adding a project meant going straight to the OS folder picker, and every session started cold, so any conversation you already had in a folder — from the `claude` CLI itself or an earlier clio install — was invisible and unreachable. The button now opens a searchable dialog listing the projects recovered from `~/.claude/projects`, newest first, each with its chat count and last-used time; folders already tracked appear dimmed with an "Added" check and sink below the selectable ones, and "Browse for folder…" remains for anything new. The directory names claude writes are lossy (both `/` and `.` collapse to `-`, so `-Users-me-my-app` could be `/Users/me/my.app` or `/Users/me/my/app`), so the real path is recovered from the `cwd` field recorded inside a transcript rather than decoded from the name; entries whose folder no longer exists on disk are dropped. New `ClaudeSessionService.discoverProjects()` behind `claudeProjectSuggestionsProvider`.
+- **Previous chats can be reopened as sessions that resume where they left off.** A history button beside the new-session `+`, and a call to action in the empty sessions area of a freshly added project, open a picker of that folder's past conversations — each showing its claude-assigned title (falling back to the first prompt), git branch, prompt count and recency. Choosing one opens it as a tab running `claude --resume <transcript-id>`: the new session stores the transcript's id as `resumeId` and is marked `claudeStarted`, which is all `terminal_controller` needs to pick `--resume` over `--session-id`, so its launch path is unchanged. Chats clio already holds as tabs are filtered out of the picker rather than shown disabled — two ptys resuming one transcript would fight over the same file — and the history button only renders once something is left to restore. Transcripts are stream-parsed a line at a time with a few files in flight, so a project with dozens of chats populates the picker without buffering megabytes; transcripts with no real exchange are skipped because `--resume` fails on them.
+
+### Fixed
+- **Adding the same folder twice created two projects with different ids.** `ProjectsNotifier.addProjectByPath` always inserted a new `Project`, with no check against the stored paths, so re-picking a folder silently produced a duplicate rail entry with its own separate session list. It now returns the existing project when that path is already tracked, and returns the created one otherwise, so callers can select it either way.
+
+### Changed
+- **Dialog and text-field styling now lives in `AppTheme`** (`dialogTheme`, `inputDecorationTheme`) rather than being repeated per widget, alongside a new `AppDialogShell` that supplies the titled panel, scrollable body and footer both new dialogs share. These deliberately do not use `AlertDialog.adaptive`: on macOS it renders a narrow `CupertinoAlertDialog`, which cannot host a search field above a scrolling list. The adaptive pattern stays where it belongs, on confirmations.
+
 ## [0.2.2] - 2026-06-17
 
 ### Changed
