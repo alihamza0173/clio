@@ -152,6 +152,108 @@ abstract class AppLocalizations {
   /// **'Remove \"{name}\" from clio? Sessions for this project will be closed.'**
   String removeProjectConfirm(String name);
 
+  /// No description provided for @searchFoldersHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search folders…'**
+  String get searchFoldersHint;
+
+  /// No description provided for @fromClaudeHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'From your Claude history'**
+  String get fromClaudeHistory;
+
+  /// No description provided for @browseForFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse for folder…'**
+  String get browseForFolder;
+
+  /// No description provided for @projectAlreadyAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added'**
+  String get projectAlreadyAdded;
+
+  /// No description provided for @noProjectSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'No previous Claude folders found. Browse for one instead.'**
+  String get noProjectSuggestions;
+
+  /// No description provided for @chatCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No chats} =1{1 chat} other{{count} chats}}'**
+  String chatCount(int count);
+
+  /// No description provided for @promptCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 prompt} other{{count} prompts}}'**
+  String promptCount(int count);
+
+  /// No description provided for @previousChatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous chats'**
+  String get previousChatsTitle;
+
+  /// No description provided for @previousChatsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen a conversation from this folder — it picks up where you left off.'**
+  String get previousChatsSubtitle;
+
+  /// No description provided for @restorePreviousChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore previous chat'**
+  String get restorePreviousChat;
+
+  /// No description provided for @restorePreviousChatCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore previous chat ({count})'**
+  String restorePreviousChatCount(int count);
+
+  /// No description provided for @noPreviousChats.
+  ///
+  /// In en, this message translates to:
+  /// **'No previous chats for this folder.'**
+  String get noPreviousChats;
+
+  /// No description provided for @timeJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'just now'**
+  String get timeJustNow;
+
+  /// No description provided for @timeMinutesAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}m ago'**
+  String timeMinutesAgo(int count);
+
+  /// No description provided for @timeHoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}h ago'**
+  String timeHoursAgo(int count);
+
+  /// No description provided for @timeDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}d ago'**
+  String timeDaysAgo(int count);
+
+  /// No description provided for @timeWeeksAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}w ago'**
+  String timeWeeksAgo(int count);
+
   /// No description provided for @sessionsTitle.
   ///
   /// In en, this message translates to:

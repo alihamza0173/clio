@@ -40,6 +40,86 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get searchFoldersHint => 'Search folders…';
+
+  @override
+  String get fromClaudeHistory => 'From your Claude history';
+
+  @override
+  String get browseForFolder => 'Browse for folder…';
+
+  @override
+  String get projectAlreadyAdded => 'Added';
+
+  @override
+  String get noProjectSuggestions =>
+      'No previous Claude folders found. Browse for one instead.';
+
+  @override
+  String chatCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count chats',
+      one: '1 chat',
+      zero: 'No chats',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String promptCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count prompts',
+      one: '1 prompt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get previousChatsTitle => 'Previous chats';
+
+  @override
+  String get previousChatsSubtitle =>
+      'Reopen a conversation from this folder — it picks up where you left off.';
+
+  @override
+  String get restorePreviousChat => 'Restore previous chat';
+
+  @override
+  String restorePreviousChatCount(int count) {
+    return 'Restore previous chat ($count)';
+  }
+
+  @override
+  String get noPreviousChats => 'No previous chats for this folder.';
+
+  @override
+  String get timeJustNow => 'just now';
+
+  @override
+  String timeMinutesAgo(int count) {
+    return '${count}m ago';
+  }
+
+  @override
+  String timeHoursAgo(int count) {
+    return '${count}h ago';
+  }
+
+  @override
+  String timeDaysAgo(int count) {
+    return '${count}d ago';
+  }
+
+  @override
+  String timeWeeksAgo(int count) {
+    return '${count}w ago';
+  }
+
+  @override
   String get sessionsTitle => 'Sessions';
 
   @override

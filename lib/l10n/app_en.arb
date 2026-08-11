@@ -15,6 +15,44 @@
   "@removeProjectConfirm": {
     "placeholders": { "name": { "type": "String" } }
   },
+  "searchFoldersHint": "Search folders…",
+  "fromClaudeHistory": "From your Claude history",
+  "browseForFolder": "Browse for folder…",
+  "projectAlreadyAdded": "Added",
+  "noProjectSuggestions": "No previous Claude folders found. Browse for one instead.",
+  "chatCount": "{count, plural, =0{No chats} =1{1 chat} other{{count} chats}}",
+  "@chatCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "promptCount": "{count, plural, =1{1 prompt} other{{count} prompts}}",
+  "@promptCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "previousChatsTitle": "Previous chats",
+  "previousChatsSubtitle": "Reopen a conversation from this folder — it picks up where you left off.",
+  "restorePreviousChat": "Restore previous chat",
+  "restorePreviousChatCount": "Restore previous chat ({count})",
+  "@restorePreviousChatCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "noPreviousChats": "No previous chats for this folder.",
+  "timeJustNow": "just now",
+  "timeMinutesAgo": "{count}m ago",
+  "@timeMinutesAgo": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "timeHoursAgo": "{count}h ago",
+  "@timeHoursAgo": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "timeDaysAgo": "{count}d ago",
+  "@timeDaysAgo": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "timeWeeksAgo": "{count}w ago",
+  "@timeWeeksAgo": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "sessionsTitle": "Sessions",
   "newSession": "New session",
   "noSessions": "No sessions yet. Start one to launch Claude here.",

@@ -40,6 +40,92 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get searchFoldersHint => 'ابحث في المجلدات…';
+
+  @override
+  String get fromClaudeHistory => 'من سجل كلود';
+
+  @override
+  String get browseForFolder => 'تصفّح المجلدات…';
+
+  @override
+  String get projectAlreadyAdded => 'مُضاف';
+
+  @override
+  String get noProjectSuggestions =>
+      'لا توجد مجلدات سابقة لكلود. تصفّح للاختيار.';
+
+  @override
+  String chatCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count محادثة',
+      many: '$count محادثة',
+      few: '$count محادثات',
+      two: 'محادثتان',
+      one: 'محادثة واحدة',
+      zero: 'لا محادثات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String promptCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count طلب',
+      many: '$count طلباً',
+      few: '$count طلبات',
+      two: 'طلبان',
+      one: 'طلب واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get previousChatsTitle => 'المحادثات السابقة';
+
+  @override
+  String get previousChatsSubtitle =>
+      'أعد فتح محادثة من هذا المجلد — تُستأنف من حيث توقفت.';
+
+  @override
+  String get restorePreviousChat => 'استعادة محادثة سابقة';
+
+  @override
+  String restorePreviousChatCount(int count) {
+    return 'استعادة محادثة سابقة ($count)';
+  }
+
+  @override
+  String get noPreviousChats => 'لا توجد محادثات سابقة لهذا المجلد.';
+
+  @override
+  String get timeJustNow => 'الآن';
+
+  @override
+  String timeMinutesAgo(int count) {
+    return 'قبل $count د';
+  }
+
+  @override
+  String timeHoursAgo(int count) {
+    return 'قبل $count س';
+  }
+
+  @override
+  String timeDaysAgo(int count) {
+    return 'قبل $count ي';
+  }
+
+  @override
+  String timeWeeksAgo(int count) {
+    return 'قبل $count أ';
+  }
+
+  @override
   String get sessionsTitle => 'الجلسات';
 
   @override
