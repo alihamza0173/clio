@@ -6,6 +6,15 @@ class CreateSession {
 
   final SessionRepository _repository;
 
-  Future<Session> call({required String projectId, String? title}) =>
-      _repository.createSession(projectId: projectId, title: title);
+  Future<Session> call({
+    required String projectId,
+    String? title,
+    String? resumeId,
+    bool claudeStarted = false,
+  }) => _repository.createSession(
+    projectId: projectId,
+    title: title,
+    resumeId: resumeId,
+    claudeStarted: claudeStarted,
+  );
 }

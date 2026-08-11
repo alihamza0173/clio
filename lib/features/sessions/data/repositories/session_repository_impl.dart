@@ -18,14 +18,17 @@ class SessionRepositoryImpl implements SessionRepository {
   Future<Session> createSession({
     required String projectId,
     String? title,
+    String? resumeId,
+    bool claudeStarted = false,
   }) async {
     final sessions = await _local.readSessions(projectId);
     final session = SessionModel(
       id: _uuid.v4(),
       projectId: projectId,
       title: title ?? 'Session ${sessions.length + 1}',
-      claudeStarted: false,
+      claudeStarted: claudeStarted,
       createdAt: DateTime.now(),
+      resumeId: resumeId,
     );
     sessions.add(session);
     await _local.writeSessions(projectId, sessions);

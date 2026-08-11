@@ -97,7 +97,7 @@ final class SessionsNotifierProvider
   }
 }
 
-String _$sessionsNotifierHash() => r'9f502ba9cec192dd05ea3461aceaf270ff00bd03';
+String _$sessionsNotifierHash() => r'9a95e2b83ace18bf3df1b77fa6bb7f3067c1c117';
 
 final class SessionsNotifierFamily extends $Family
     with

@@ -153,7 +153,7 @@ final class SessionStatusNotifierProvider
 }
 
 String _$sessionStatusNotifierHash() =>
-    r'35ed6e4b45edef3e12c9e6355155633d642dc9f5';
+    r'8278a13a5ffaebb65f9335e5a00b8249d226bb7f';
 
 /// Live activity state for one session's `claude` turn, driven by injected
 /// Claude Code hooks (authoritative). `Stop` never fires when the user

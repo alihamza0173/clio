@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/providers/core_providers.dart';
+import '../../../../core/services/claude_session_service.dart';
 import '../../data/datasources/session_local_datasource.dart';
 import '../../data/repositories/session_repository_impl.dart';
 import '../../domain/entities/session.dart';
@@ -85,16 +86,28 @@ class SessionsNotifier extends _$SessionsNotifier {
     return updated;
   }
 
-  Future<Session> create({String? title}) async {
+  Future<Session> create({
+    String? title,
+    String? resumeId,
+    bool claudeStarted = false,
+  }) async {
     final repo = ref.read(sessionRepositoryProvider);
     final session = await CreateSession(repo)(
       projectId: projectId,
       title: title,
+      resumeId: resumeId,
+      claudeStarted: claudeStarted,
     );
     ref.invalidateSelf();
     await future;
     return session;
   }
+
+  /// Reopens a past claude conversation as a tab. Marking it started with the
+  /// transcript's own id is what makes `terminal_controller` launch
+  /// `claude --resume <id>` instead of starting a fresh conversation.
+  Future<Session> restoreChat(ClaudeChatSummary chat) =>
+      create(title: chat.label, resumeId: chat.id, claudeStarted: true);
 
   Future<void> markStarted(String sessionId) async {
     final repo = ref.read(sessionRepositoryProvider);
