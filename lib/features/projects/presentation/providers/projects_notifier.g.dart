@@ -86,7 +86,7 @@ abstract class _$ProjectsNotifier extends $AsyncNotifier<List<Project>> {
   FutureOr<List<Project>> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<List<Project>>, List<Project>>;
     final element =
         ref.element
@@ -96,7 +96,7 @@ abstract class _$ProjectsNotifier extends $AsyncNotifier<List<Project>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -139,7 +139,7 @@ abstract class _$HiddenSectionExpanded extends $Notifier<bool> {
   bool build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<bool, bool>;
     final element =
         ref.element
@@ -149,7 +149,7 @@ abstract class _$HiddenSectionExpanded extends $Notifier<bool> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -191,7 +191,7 @@ abstract class _$SelectedProjectId extends $Notifier<String?> {
   String? build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<String?, String?>;
     final element =
         ref.element
@@ -201,6 +201,6 @@ abstract class _$SelectedProjectId extends $Notifier<String?> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

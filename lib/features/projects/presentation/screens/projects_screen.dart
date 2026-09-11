@@ -23,6 +23,10 @@ class ProjectsScreen extends ConsumerStatefulWidget {
 class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
   final _mountedProjects = <String>[];
 
+  /// Mounting or unmounting a project adds/removes that project's terminal
+  /// webviews; the visible terminal repaints itself when this changes.
+  int _revision = 0;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -109,6 +113,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
     Project? selected,
     AppLocalizations l10n,
   ) {
+    final before = _mountedProjects.length;
     if (projects != null) {
       final ids = projects.map((p) => p.id).toSet();
       _mountedProjects.removeWhere((id) => !ids.contains(id));
@@ -116,6 +121,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
     if (selected != null && !_mountedProjects.contains(selected.id)) {
       _mountedProjects.add(selected.id);
     }
+    if (_mountedProjects.length != before) _revision++;
 
     if (selected == null || _mountedProjects.isEmpty) {
       return Center(
@@ -132,6 +138,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
             key: ValueKey('project:$id'),
             project: _projectById(projects, id),
             visible: id == selected.id,
+            revision: _revision,
           ),
       ],
     );

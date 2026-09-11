@@ -16,10 +16,14 @@ class WebTerminalView extends StatefulWidget {
     super.key,
     required this.bridge,
     required this.active,
+    required this.revision,
   });
 
   final TerminalBridge bridge;
   final bool active;
+
+  /// Changes whenever a sibling terminal is mounted or unmounted.
+  final int revision;
 
   @override
   State<WebTerminalView> createState() => _WebTerminalViewState();
@@ -42,20 +46,44 @@ class _WebTerminalViewState extends State<WebTerminalView> {
     }
   }
 
+  void _nudge() => _web?.evaluateJavascript(
+    source: 'window.clioNudge && window.clioNudge()',
+  );
+
+  void _bindOutput() {
+    final controller = _web;
+    if (controller == null) return;
+    widget.bridge.onOutput = (bytes) {
+      controller.evaluateJavascript(
+        source: "window.clioWrite('${base64Encode(bytes)}')",
+      );
+    };
+  }
+
   @override
   void didUpdateWidget(WebTerminalView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (!identical(widget.bridge, oldWidget.bridge)) {
+      oldWidget.bridge.onOutput = null;
+      _bindOutput();
+    }
     if (widget.active && !oldWidget.active) {
       _grabKeyboard();
-      _web?.evaluateJavascript(
-        source: 'window.clioNudge && window.clioNudge()',
-      );
+      _nudge();
+    } else if (widget.active && widget.revision != oldWidget.revision) {
+      // Disposing a sibling webview can leave this one's WKWebView layer
+      // presenting a black surface, and an idle session emits no output to
+      // trigger the usual repaint — so force one once the frame has landed.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _nudge();
+      });
     }
   }
 
   @override
   void dispose() {
     widget.bridge.onOutput = null;
+    _web = null;
     _focus.dispose();
     super.dispose();
   }
@@ -139,11 +167,7 @@ class _WebTerminalViewState extends State<WebTerminalView> {
               handlerName: 'clio',
               callback: (args) => _onJsMessage(args),
             );
-            widget.bridge.onOutput = (bytes) {
-              controller.evaluateJavascript(
-                source: "window.clioWrite('${base64Encode(bytes)}')",
-              );
-            };
+            _bindOutput();
           },
           onLoadStop: (controller, url) {
             controller.evaluateJavascript(

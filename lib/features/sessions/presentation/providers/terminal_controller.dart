@@ -98,10 +98,24 @@ class TerminalController extends _$TerminalController {
   String? _currentTitle;
   SessionStatusNotifier? _status;
   Directory? _hookSettingsDir;
-  late final TerminalBridge _bridge;
+  late TerminalBridge _bridge;
 
+  /// Riverpod reuses the notifier instance across rebuilds, so every field has
+  /// to be reset here — otherwise a rebuild after an invalidate would keep the
+  /// disposed run's `_disposed`/`_pty` and quietly refuse to launch again.
   @override
   TerminalBridge build(String projectId, String sessionId) {
+    _pty = null;
+    _starting = false;
+    _disposed = false;
+    _reconciling = false;
+    _reconcileTimer = null;
+    _outputSub = null;
+    _projectPath = null;
+    _resumeId = null;
+    _currentTitle = null;
+    _status = null;
+    _hookSettingsDir = null;
     _bridge = TerminalBridge._(this);
     ref.onDispose(() {
       _disposed = true;
@@ -114,8 +128,20 @@ class TerminalController extends _$TerminalController {
     return _bridge;
   }
 
+  /// A renderer that re-attaches to an already running pty starts with an empty
+  /// xterm buffer and no scrollback replay. `TIOCSWINSZ` only raises `SIGWINCH`
+  /// when the size actually changes, so re-attaching at the same geometry needs
+  /// a one-column jog to make `claude` repaint instead of leaving a blank pane.
   void _onReady(int rows, int columns) {
-    if (_pty == null) _launch(rows: rows, columns: columns);
+    if (_pty == null) {
+      _launch(rows: rows, columns: columns);
+      return;
+    }
+    if (rows <= 0 || columns <= 1) return;
+    _pty!.resize(rows, columns - 1);
+    Future.delayed(const Duration(milliseconds: 32), () {
+      if (!_disposed) _pty?.resize(rows, columns);
+    });
   }
 
   void _onResize(int rows, int columns) {

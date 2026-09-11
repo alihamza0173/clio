@@ -131,7 +131,7 @@ abstract class _$SessionsNotifier extends $AsyncNotifier<List<Session>> {
   FutureOr<List<Session>> build(String projectId);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<List<Session>>, List<Session>>;
     final element =
         ref.element
@@ -141,7 +141,7 @@ abstract class _$SessionsNotifier extends $AsyncNotifier<List<Session>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }
 
@@ -228,7 +228,7 @@ abstract class _$ActiveSessionId extends $Notifier<String?> {
   String? build(String projectId);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<String?, String?>;
     final element =
         ref.element
@@ -238,6 +238,6 @@ abstract class _$ActiveSessionId extends $Notifier<String?> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

@@ -66,13 +66,22 @@ class SessionTabBar extends ConsumerWidget {
     return sessions.isNotEmpty ? sessions.first.id : null;
   }
 
+  /// Drops the session from the list *before* invalidating its providers: while
+  /// the tab is still mounted it watches `terminalControllerProvider`, so an
+  /// early invalidate rebuilds the keepAlive controller underneath a live
+  /// webview, handing it a fresh bridge that is wired to nothing.
+  /// The container is captured up front because `ref` is unusable after the
+  /// await once the tab bar has rebuilt without this tab.
   Future<void> _close(WidgetRef ref, String sessionId) async {
-    ref.invalidate(terminalControllerProvider(projectId, sessionId));
-    ref.invalidate(sessionStatusProvider(projectId, sessionId));
-    if (ref.read(activeSessionIdProvider(projectId)) == sessionId) {
-      ref.read(activeSessionIdProvider(projectId).notifier).select(null);
+    final container = ProviderScope.containerOf(ref.context, listen: false);
+    if (container.read(activeSessionIdProvider(projectId)) == sessionId) {
+      container.read(activeSessionIdProvider(projectId).notifier).select(null);
     }
-    await ref.read(sessionsProvider(projectId).notifier).remove(sessionId);
+    await container
+        .read(sessionsProvider(projectId).notifier)
+        .remove(sessionId);
+    container.invalidate(terminalControllerProvider(projectId, sessionId));
+    container.invalidate(sessionStatusProvider(projectId, sessionId));
   }
 }
 

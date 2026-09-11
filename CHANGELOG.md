@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-09-11
+
+### Fixed
+- **A new, never-typed-in session turned black once it was the last tab left.** Closing the other tabs disposes their WKWebView platform views, which leaves the surviving one presenting a black surface until the native compositing layer is forced to re-present (upstream flutter_inappwebview macOS [#1923](https://github.com/pichillilorenzo/flutter_inappwebview/issues/1923)) — and every existing repaint trigger missed this case: a brand-new session sits idle at claude's prompt so no pty output arrives to nudge it, the tab was already frontmost so the inactive→active nudge never fired, and the pane's size never changes so the `ResizeObserver` never refits. `ProjectSessionsScreen` and `ProjectsScreen` now count changes to their mounted sets and the visible terminal forces a recomposite (post-frame, after the sibling teardown lands) whenever that count moves.
+- **Closing a tab left a zombie terminal controller behind.** The close path invalidated `terminalControllerProvider` while the dying tab was still watching it, so the keepAlive provider rebuilt immediately — and since riverpod reuses the notifier instance across rebuilds, `late final _bridge` threw `LateInitializationError` and put the provider into an error state under a live widget. The session is now removed from the list first and its providers invalidated afterwards, and `TerminalController.build` resets its fields so a rebuild is survivable.
+- **A renderer re-attaching to a running pty stayed blank.** `_onReady` did nothing when the pty already existed, and because `TIOCSWINSZ` only raises `SIGWINCH` on an actual size change, a webview that came back at the same geometry never made `claude` repaint. It now jogs the width by one column and back. `WebTerminalView` also rebinds `bridge.onOutput` when the bridge identity changes, instead of staying wired to a dead bridge.
+
 ## [0.3.0] - 2026-08-11
 
 ### Added

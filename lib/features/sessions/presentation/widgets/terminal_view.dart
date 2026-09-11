@@ -14,11 +14,13 @@ class SessionTerminalView extends ConsumerWidget {
     required this.projectId,
     required this.sessionId,
     required this.active,
+    required this.revision,
   });
 
   final String projectId;
   final String sessionId;
   final bool active;
+  final int revision;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,7 +42,11 @@ class SessionTerminalView extends ConsumerWidget {
         },
         child: Directionality(
           textDirection: .ltr,
-          child: WebTerminalView(bridge: bridge, active: active),
+          child: WebTerminalView(
+            bridge: bridge,
+            active: active,
+            revision: revision,
+          ),
         ),
       ),
     );

@@ -92,7 +92,7 @@ final class TerminalControllerProvider
 }
 
 String _$terminalControllerHash() =>
-    r'80fb0cf598b46a92b0d4ad104802d7738218c484';
+    r'cd590ab6c488e3854d8cfcd63ca0f709bdd0a552';
 
 /// Owns the [PtyHandle] + [TerminalBridge] lifecycle for a single session.
 ///
@@ -166,7 +166,7 @@ abstract class _$TerminalController extends $Notifier<TerminalBridge> {
   TerminalBridge build(String projectId, String sessionId);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<TerminalBridge, TerminalBridge>;
     final element =
         ref.element
@@ -176,6 +176,6 @@ abstract class _$TerminalController extends $Notifier<TerminalBridge> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args.$1, _$args.$2));
+    return element.handleCreate(ref, () => build(_$args.$1, _$args.$2));
   }
 }

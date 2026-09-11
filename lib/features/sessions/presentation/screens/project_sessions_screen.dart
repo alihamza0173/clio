@@ -18,10 +18,15 @@ class ProjectSessionsScreen extends ConsumerStatefulWidget {
     super.key,
     required this.project,
     this.visible = true,
+    this.revision = 0,
   });
 
   final Project project;
   final bool visible;
+
+  /// Bumped by the parent whenever the set of mounted projects changes; see
+  /// [_ProjectSessionsScreenState._revision].
+  final int revision;
 
   @override
   ConsumerState<ProjectSessionsScreen> createState() =>
@@ -30,6 +35,12 @@ class ProjectSessionsScreen extends ConsumerStatefulWidget {
 
 class _ProjectSessionsScreenState extends ConsumerState<ProjectSessionsScreen> {
   final _mounted = <String>[];
+
+  /// Every add/remove here tears a WKWebView platform view out of the native
+  /// compositor, which can leave the surviving terminal presenting a black
+  /// surface. The counter lets the visible terminal notice and force a repaint;
+  /// it only ever increases, so callers can safely add it to an outer one.
+  int _revision = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +54,7 @@ class _ProjectSessionsScreenState extends ConsumerState<ProjectSessionsScreen> {
         const Divider(height: 0.5, color: AppColors.border),
         Expanded(
           child: sessionsAsync.when(
+            skipLoadingOnReload: true,
             loading: () => const Center(
               child: SizedBox(
                 width: 18,
@@ -70,10 +82,15 @@ class _ProjectSessionsScreenState extends ConsumerState<ProjectSessionsScreen> {
     String? activeId,
   ) {
     final ids = sessions.map((s) => s.id).toSet();
+    final before = _mounted.length;
     _mounted.removeWhere((id) => !ids.contains(id));
 
     final effectiveId = _effectiveId(sessions, activeId);
     if (!_mounted.contains(effectiveId)) _mounted.add(effectiveId);
+    // A same-length swap can only mean the newly added view *is* the effective
+    // one, and a freshly loaded webview paints itself — so no survivor that
+    // needs a repaint is ever missed by comparing lengths.
+    if (_mounted.length != before) _revision++;
 
     return IndexedStack(
       index: _mounted.indexOf(effectiveId),
@@ -85,6 +102,7 @@ class _ProjectSessionsScreenState extends ConsumerState<ProjectSessionsScreen> {
             projectId: projectId,
             sessionId: id,
             active: widget.visible && id == effectiveId,
+            revision: widget.revision + _revision,
           ),
       ],
     );
