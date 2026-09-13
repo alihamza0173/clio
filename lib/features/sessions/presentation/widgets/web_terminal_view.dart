@@ -17,10 +17,14 @@ class WebTerminalView extends StatefulWidget {
     required this.bridge,
     required this.active,
     required this.revision,
+    required this.onLink,
   });
 
   final TerminalBridge bridge;
   final bool active;
+
+  /// Called with a URL the user clicked in the terminal; opens it externally.
+  final ValueChanged<String> onLink;
 
   /// Changes whenever a sibling terminal is mounted or unmounted.
   final int revision;
@@ -105,6 +109,8 @@ class _WebTerminalViewState extends State<WebTerminalView> {
         );
       case 'data':
         widget.bridge.handleReply(utf8.encode(msg['data'] as String));
+      case 'link':
+        widget.onLink(msg['url'] as String);
     }
   }
 
@@ -158,6 +164,9 @@ class _WebTerminalViewState extends State<WebTerminalView> {
             allowFileAccessFromFileURLs: true,
             allowUniversalAccessFromFileURLs: true,
             supportZoom: false,
+            useShouldOverrideUrlLoading: true,
+            javaScriptCanOpenWindowsAutomatically: false,
+            supportMultipleWindows: false,
             verticalScrollBarEnabled: false,
             horizontalScrollBarEnabled: false,
           ),
@@ -168,6 +177,14 @@ class _WebTerminalViewState extends State<WebTerminalView> {
               callback: (args) => _onJsMessage(args),
             );
             _bindOutput();
+          },
+          shouldOverrideUrlLoading: (controller, action) async {
+            final url = action.request.url;
+            if (url == null || url.scheme == 'file') {
+              return NavigationActionPolicy.ALLOW;
+            }
+            widget.onLink(url.toString());
+            return NavigationActionPolicy.CANCEL;
           },
           onLoadStop: (controller, url) {
             controller.evaluateJavascript(

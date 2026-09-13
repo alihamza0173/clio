@@ -4,6 +4,7 @@ import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/providers/core_providers.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../providers/terminal_controller.dart';
 import 'web_terminal_view.dart';
@@ -46,6 +47,7 @@ class SessionTerminalView extends ConsumerWidget {
             bridge: bridge,
             active: active,
             revision: revision,
+            onLink: (url) => ref.read(urlLauncherServiceProvider).open(url),
           ),
         ),
       ),

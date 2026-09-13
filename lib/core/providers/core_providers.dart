@@ -7,6 +7,7 @@ import '../services/process_service.dart';
 import '../services/pty_service.dart';
 import '../services/shell_env_service.dart';
 import '../services/storage_service.dart';
+import '../services/url_launcher_service.dart';
 import '../services/uuid_service.dart';
 
 final sharedPreferencesProvider = Provider<SharedPreferences>(
@@ -23,6 +24,10 @@ final uuidServiceProvider = Provider<UuidService>((ref) => const UuidService());
 
 final processServiceProvider = Provider<ProcessService>(
   (ref) => const ProcessService(),
+);
+
+final urlLauncherServiceProvider = Provider<UrlLauncherService>(
+  (ref) => UrlLauncherService(ref.watch(processServiceProvider)),
 );
 
 final shellEnvServiceProvider = Provider<ShellEnvService>(

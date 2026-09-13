@@ -25,6 +25,19 @@
     brightWhite: '#F0F6FC'
   };
 
+  // OSC 8 hyperlinks (what claude emits for PR/issue URLs) are resolved by
+  // xterm's own link provider, not by WebLinksAddon. Without a linkHandler it
+  // falls back to confirm() + window.open(), which the webview services by
+  // navigating itself — the terminal is replaced by a blank page. Route both
+  // link kinds to Dart instead so the OS browser opens them.
+  var linkHandler = {
+    allowNonHttpProtocols: false,
+    activate: function (event, uri) {
+      if (event) event.preventDefault();
+      postToDart({ type: 'link', url: uri });
+    }
+  };
+
   var term = new Terminal({
     fontFamily: 'JetBrains Mono, monospace',
     fontSize: 13,
@@ -35,6 +48,7 @@
     cursorStyle: 'block',
     cursorInactiveStyle: 'block',
     macOptionIsMeta: true,
+    linkHandler: linkHandler,
     theme: theme
   });
 
@@ -69,9 +83,7 @@
   }
 
   try {
-    term.loadAddon(new WebLinksAddon.WebLinksAddon(function (event, uri) {
-      postToDart({ type: 'link', url: uri });
-    }));
+    term.loadAddon(new WebLinksAddon.WebLinksAddon(linkHandler.activate));
   } catch (e) { }
 
   // ---- Dart bridge ----
