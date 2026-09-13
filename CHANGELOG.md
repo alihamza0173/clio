@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2026-09-13
+
+### Fixed
+- **Clicking a link in the terminal did nothing, and clicking a PR link blanked the tab.** Two separate gaps in the same path. Plain URLs are matched by `WebLinksAddon`, whose handler posted a `{type:'link'}` message to Dart — but `WebTerminalView._onJsMessage` had no `link` case, so every click was silently dropped. OSC 8 hyperlinks (the form `claude` emits for PR and issue URLs) never reach that addon at all: xterm resolves them through its own link provider, which with no `linkHandler` option falls back to `confirm()` + `window.open()`, and the webview serviced that by navigating itself — replacing the terminal with a blank page. `bridge.js` now passes one shared `linkHandler` both as a terminal option and to `WebLinksAddon`, so both link kinds post to Dart, and a new `UrlLauncherService` opens them in the OS browser (`open` / `xdg-open` / `rundll32`, restricted to http/https/mailto because terminal output is untrusted). `shouldOverrideUrlLoading` cancels any non-`file:` navigation as a backstop, so nothing can replace the terminal again.
+
 ## [0.3.1] - 2026-09-11
 
 ### Fixed
